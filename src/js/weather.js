@@ -20,7 +20,6 @@ function getelem(x,y) {
     request.open("GET", y, true);
     request.responseType = "json";
     request.send("");
-    return(x,y);
 }
 function change(city) {
     name = this.response.name;
