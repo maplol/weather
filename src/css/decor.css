@@ -1,61 +1,39 @@
 body {
-    background: url(https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Map_Of_Belarus_blank.svg/850px-Map_Of_Belarus_blank.svg.png) no-repeat;
+    background-color: #929292;;
     font-family: Calibri;
 }
 header {
     color: #000000;
-    background-color: rgba(134, 134, 134, 0.86);
-    box-shadow:1px 5px 5px rgba(0, 0, 0, 0.7);
+    background-color: rgb(255, 218, 246);
+    box-shadow:1px 7px 10px rgba(0, 0, 0, 0.81);
     font-size:40px;
     padding:10px 23px;
-    text-decoration:none;
-    position: absolute;
-    left: 20px;
-    top: 20px;
-}
-
-.img1 {
-     position: absolute;
-     left: 276px;
-     top: 13px;
- }
-.img2 {
-    position: absolute;
-    left:455px;
-    top:268px;
-}
-.img3 {
-    position: absolute;
-    left:256px;
-    top:184px;
-}
-.img4 {
-    position: absolute;
-    left:40px;
-    top:189.1px;
-}
-.img5 {
-    position: absolute;
-    left:363px;
-    top:433px;
-}
-.img6 {
-    position: absolute;
-    left:10.5px;
-    top:423px;
-}
-.widget {
-    display: inline-block;
 }
 
 textarea{
-    color: #000000;
-    background-color: rgba(134, 134, 134, 0.86);
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.6);
     z-index: 2;
     border: 0;
-    box-shadow:1px 5px 5px rgba(0, 0, 0, 0.7);
+    box-shadow:0 7px 10px rgba(0, 0, 0, 0.51);
     font-size: 23px;
     width: 250px;
     height: 100px;
     resize: none;
+    vertical-align: top;
+}
+img{
+    filter: drop-shadow(0 5px 5px rgb(0, 0, 0));
+}
+div{
+    display:inline-block;
+    background-color: #7cf99a;
+    box-shadow:0 7px 10px rgba(0, 0, 0, 0.81);
+    outline: 10px solid rgba(110, 61, 60, 0.62);
+    outline-offset: -10px;
+    margin:10px;
+}
+main{
+    background-color: rgba(181, 158, 135, 0.65);
+    box-shadow:0 7px 10px rgba(0, 0, 0, 0.81);
 }

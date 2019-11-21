@@ -1,4 +1,7 @@
-let url = "https://api.openweathermap.org/data/2.5/weather?q=",
+let
+    names=["Minsk","Homyel","Vitebsk","Hrodna","Mahilyow","Brest"],
+    normnames=["Minsk","Gomel","Vitebsk","Grodno","Mogilev","Brest"],
+    url = "https://api.openweathermap.org/data/2.5/weather?q=",
     gomelurl= url+"homyel&APPID=a8de50e25c5a720cf60c585bda8206d6",
     minskurl = url+"minsk&APPID=a8de50e25c5a720cf60c585bda8206d6",
     vitebskurl = url +"vitebsk&APPID=a8de50e25c5a720cf60c585bda8206d6",
@@ -11,8 +14,7 @@ let url = "https://api.openweathermap.org/data/2.5/weather?q=",
     vitebsk = document.getElementById("vitebsk"),
     mogilev = document.getElementById("mogilev"),
     grodno = document.getElementById("grodno"),
-    brest = document.getElementById("brest"),
-    name,weather,temp;
+    brest = document.getElementById("brest");
 
 function getelem(x,y) {
     let request = new XMLHttpRequest();
@@ -22,35 +24,22 @@ function getelem(x,y) {
     request.send("");
 }
 function change(city) {
-    name = this.response.name;
-    weather = this.response.weather[0].main;
-    temp = (Math.round(this.response.main.temp - 273.15));
-    city.value =  "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
+    return function () {
+        for (let i = 0; i < names.length; i++) {
+            if (this.response.name === names[i]) {
+                names[i] = normnames[i];
+                weather = this.response.weather[0].main;
+                temp = (Math.round(this.response.main.temp - 273.15));
+                city.value = "City: " + names[i] + "\nWeather: " + weather + "\nTemp: " + temp + "°C"
+            }
+        }
+    }
 }
 
 getelem(change(gomel),gomelurl);
-function changeInfominsk () {
-    minsk.value = "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
-}
-getelem(changeInfominsk,minskurl);
-
-function changeInfovitebsk () {
-    vitebsk.value =  "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
-}
-getelem(changeInfovitebsk,vitebskurl);
-
-function changeInfomogilev () {
-    mogilev.value =  "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
-}
-getelem(changeInfomogilev,mogilevurl);
-
-function changeInfogrodno () {
-    grodno.value =  "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
-}
-getelem(changeInfogrodno,grodnourl);
-
-function changeInfobrest () {
-    brest.value =  "City: "+name +"\nWeather: "+weather+"\nTemp: "+ temp+ "°C"
-}
-getelem(changeInfobrest,bresturl);
+getelem(change(minsk),minskurl);
+getelem(change(vitebsk),vitebskurl);
+getelem(change(mogilev),mogilevurl);
+getelem(change(grodno),grodnourl);
+getelem(change(brest),bresturl);
 
