@@ -1,10 +1,12 @@
+const CORS = { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" };
+
 exports.handler = async (event) => {
   const apiKey = process.env.OPENWEATHER_API_KEY;
   if (!apiKey) {
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "API key not configured" }),
+      headers: CORS,
+      body: JSON.stringify({ error: "API key not configured. Add OPENWEATHER_API_KEY in Netlify env." }),
     };
   }
 
@@ -15,14 +17,15 @@ exports.handler = async (event) => {
   if (!city) {
     return {
       statusCode: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: "Missing city parameter" }),
     };
   }
 
-  const base = `https://api.openweathermap.org/data/2.5`;
+  const base = "https://api.openweathermap.org/data/2.5";
   const path = type === "forecast" ? "forecast" : "weather";
-  const url = `${base}/${path}?q=${encodeURIComponent(city)}&APPID=${apiKey}&lang=${lang}`;
+  const forecastParams = type === "forecast" ? "&cnt=40" : "";
+  const url = `${base}/${path}?q=${encodeURIComponent(city)}&APPID=${apiKey}&lang=${lang}${forecastParams}`;
 
   try {
     const res = await fetch(url);
@@ -31,20 +34,20 @@ exports.handler = async (event) => {
     if (!res.ok) {
       return {
         statusCode: res.status,
-        headers: { "Content-Type": "application/json" },
+        headers: CORS,
         body: JSON.stringify({ error: data.message || "Weather API error" }),
       };
     }
 
     return {
       statusCode: 200,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers: CORS,
       body: JSON.stringify(data),
     };
   } catch (err) {
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: CORS,
       body: JSON.stringify({ error: err.message || "Network error" }),
     };
   }

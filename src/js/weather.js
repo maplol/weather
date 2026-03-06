@@ -117,7 +117,7 @@
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json")) throw new Error(tr("serviceUnavailable"));
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
     return data;
   }
 
@@ -132,7 +132,7 @@
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json")) throw new Error(tr("serviceUnavailable"));
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
     return data;
   }
 
