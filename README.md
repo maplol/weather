@@ -1,2 +1,1 @@
-https://weatherbelarus.netlify.com/
-
+https://wbelarus.netlify.app/
