@@ -1,39 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 	<head>
 		<meta charset="utf-8" />
-		<title>Title</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Погода</title>
 		<link rel="stylesheet" href="css/decor.css" />
 	</head>
 	<body>
-		<header>Belarus</header>
+		<header>
+			<span class="header-logo">Беларусь</span>
+			<a href="se.html" class="nav-hidden" aria-hidden="true">⋯</a>
+		</header>
 		<main>
-			<a href="se.html">ss</a>
-			<div>
-				<textarea id="brest" readonly></textarea>
-				<img src="https://image.ibb.co/cKkbX0/brest.png" />
+			<div id="belarus-view" class="belarus-view">
+				<div id="svg-wrap" class="svg-wrap">
+					<div id="svg-transform-wrap" class="svg-transform-wrap">
+						<svg id="belarus-svg" class="belarus-svg" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+							<g id="regions"></g>
+						</svg>
+					</div>
+				</div>
+				<div id="map-loading" class="map-loading"></div>
+			<div id="region-tooltip" class="region-tooltip" aria-hidden="true"></div>
 			</div>
-			<div>
-				<textarea id="vitebsk" readonly></textarea>
-				<img src="https://image.ibb.co/gc3kQL/vitebsk.png" />
-			</div>
-			<div>
-				<textarea id="gomel" readonly></textarea>
-				<img src="https://image.ibb.co/jrUQQL/gomel.png" />
-			</div>
-			<div>
-				<textarea id="grodno" readonly></textarea>
-				<img src="https://image.ibb.co/e1biC0/grodno.png" />
-			</div>
-			<div>
-				<textarea id="minsk" readonly></textarea>
-				<img src="https://image.ibb.co/mbeQQL/minsk.png" />
-			</div>
-			<div>
-				<textarea id="mogilev" readonly></textarea>
-				<img src="https://image.ibb.co/g6N1zf/mogilev.png" />
-			</div>
+			<aside id="detail-panel" class="detail-panel" aria-hidden="true">
+				<button class="detail-close" aria-label="Закрыть">×</button>
+				<div class="detail-content">
+					<div class="detail-header">
+						<h2 class="detail-city">—</h2>
+						<div class="detail-current">
+							<img class="detail-icon" src="" alt="" />
+							<div class="detail-main">
+								<span class="detail-temp">—</span>
+								<span class="detail-desc">—</span>
+							</div>
+						</div>
+						<div class="detail-extra"></div>
+					</div>
+					<section class="detail-forecast">
+						<h3></h3>
+						<div class="forecast-list"></div>
+					</section>
+				</div>
+			</aside>
+			<div id="detail-overlay" class="detail-overlay" aria-hidden="true"></div>
 		</main>
+
+		<script src="js/ow-config.js"></script>
+		<script src="data/countries.js"></script>
+		<script src="js/weather.js"></script>
 	</body>
-	<script type="text/javascript" src="js/weather.js"></script>
 </html>
