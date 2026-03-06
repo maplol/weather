@@ -9,12 +9,17 @@
   "scripts": {
     "prestart": "node scripts/gen-ow-config.js",
     "prebuild": "node scripts/gen-ow-config.js",
-    "start": "eleventy --serve",
-    "build": "eleventy",
+    "build:css": "postcss src/css/main.css -o src/css/styles.css",
+    "start": "npm run build:css && eleventy --serve",
+    "build": "npm run build:css && eleventy",
     "serve": "npm run build && npx serve dist -p 3000"
   },
   "dependencies": {
-    "@11ty/eleventy": "^2.0.0"
+    "@11ty/eleventy": "^2.0.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "postcss": "^8.5.8",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
     "dotenv": "^16.6.1",

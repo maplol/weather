@@ -4,7 +4,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 
@@ -63,7 +64,11 @@ main {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(180deg, transparent 60%, rgba(15, 20, 25, 0.4) 100%);
+  background: linear-gradient(
+    180deg,
+    transparent 60%,
+    rgba(15, 20, 25, 0.4) 100%
+  );
 }
 
 .svg-wrap {
@@ -92,8 +97,6 @@ main {
 .belarus-svg {
   width: 100%;
   height: 100%;
-  max-width: 90vw;
-  max-height: 85vh;
 }
 
 .belarus-svg path.region {
@@ -102,7 +105,10 @@ main {
   stroke-width: 1.5;
   cursor: pointer;
   pointer-events: fill;
-  transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+  transition:
+    fill 0.2s,
+    stroke 0.2s,
+    filter 0.2s;
 }
 
 .belarus-svg path.region:hover {
@@ -124,7 +130,9 @@ main {
   z-index: 50;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.15s, transform 0.15s;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
   white-space: nowrap;
 }
 
@@ -161,7 +169,9 @@ main {
   z-index: 100;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
+  transition:
+    opacity 0.3s,
+    visibility 0.3s;
 }
 
 .detail-overlay:not(.visible) {
@@ -238,10 +248,17 @@ main {
   margin-bottom: 1rem;
 }
 
+.detail-icon-wrap {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+}
+
 .detail-icon {
   width: 72px;
   height: 72px;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+  display: block;
 }
 
 .detail-main {
@@ -276,6 +293,161 @@ main {
   border: 1px solid rgba(0, 184, 148, 0.15);
 }
 
+/* Skeletons */
+.skeleton {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.detail-header.loading .detail-city {
+  min-width: 120px;
+}
+
+.detail-current.loading .detail-icon-wrap {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+  border-radius: 12px;
+}
+.detail-current.loading .detail-temp {
+  visibility: hidden;
+  position: relative;
+}
+.detail-current.loading .detail-temp::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 80px;
+  height: 2rem;
+  background: #e8e8e8;
+  border-radius: 6px;
+  animation: skeleton-shimmer 1.2s infinite;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+}
+.detail-current.loading .detail-desc {
+  visibility: hidden;
+  position: relative;
+}
+.detail-current.loading .detail-desc::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 90px;
+  height: 1rem;
+  background: #e8e8e8;
+  border-radius: 4px;
+  animation: skeleton-shimmer 1.2s infinite;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+}
+
+.detail-extra.skeleton-mode {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+.detail-extra.skeleton-mode .skeleton-box {
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+
+.forecast-list.skeleton-mode .forecast-item-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem;
+}
+.forecast-list.skeleton-mode .forecast-item-skeleton .skeleton-box {
+  height: 40px;
+  flex: 1;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+.forecast-list.skeleton-mode .forecast-item-skeleton .skeleton-box:last-child {
+  flex: 0 0 50px;
+}
+
+.hourly-chart.skeleton-mode {
+  min-height: 140px;
+  display: flex !important;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 1rem 0;
+}
+.hourly-chart.skeleton-mode .skeleton-box {
+  flex: 1;
+  min-height: 40px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+
+/* Hourly chart */
+.hourly-chart {
+  margin-bottom: 1.5rem;
+  padding: 1rem 0;
+}
+.hourly-chart-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+.hourly-chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100px;
+}
+.hourly-chart-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.hourly-chart-bar-temp {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #00b894;
+}
+.hourly-chart-bar-fill {
+  width: 100%;
+  max-width: 24px;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #00b894, #0984e3);
+  transition: height 0.3s ease;
+}
+.hourly-chart-bar-time {
+  font-size: 0.65rem;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 .detail-forecast h3 {
   margin: 0 0 1rem;
   font-size: 1.1rem;
@@ -290,14 +462,19 @@ main {
 }
 
 .forecast-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 1rem;
   padding: 0.85rem;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  cursor: pointer;
+  user-select: none;
 }
 
 .forecast-item:hover {
@@ -305,15 +482,74 @@ main {
   box-shadow: 0 4px 16px rgba(0, 184, 148, 0.15);
 }
 
+.forecast-item.expanded {
+  box-shadow: 0 4px 20px rgba(0, 184, 148, 0.2);
+}
+
+.forecast-item-details {
+  grid-column: 1 / -1;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.forecast-item.expanded .forecast-item-details {
+  max-height: 600px;
+}
+
+.forecast-item-details-inner {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 184, 148, 0.15);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.forecast-item-details-inner span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.forecast-item-details-inner .hour-list {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #eee;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.forecast-item-details-inner .hour-list span {
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 184, 148, 0.08);
+  border-radius: 8px;
+}
+
 .forecast-item img {
   width: 40px;
   height: 40px;
 }
 
+.forecast-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .forecast-item .day {
-  flex: 1;
   font-weight: 600;
   color: #444;
+}
+
+.forecast-item-desc {
+  font-size: 0.85rem;
+  color: #666;
+  text-transform: capitalize;
 }
 
 .forecast-item .temp {

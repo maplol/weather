@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@source "../**/*.html";
+@source "../**/*.js";
+
+@theme {
+  --color-teal: #00b894;
+  --color-teal-dark: #009776;
+  --color-blue: #0984e3;
+  --color-bg: #0f1419;
+  --color-bg-mid: #1a2838;
+  --font-sans: "Manrope", system-ui, sans-serif;
+}
+
+/* SVG regions - can't use Tailwind */
+.belarus-svg path.region {
+  fill: rgba(0, 184, 148, 0.35);
+  stroke: rgba(0, 152, 118, 0.9);
+  stroke-width: 1.5;
+  cursor: pointer;
+  pointer-events: fill;
+  transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+}
+.belarus-svg path.region:hover {
+  fill: rgba(0, 184, 148, 0.6);
+  stroke: rgba(255, 255, 255, 0.9);
+  filter: drop-shadow(0 0 12px rgba(0, 184, 148, 0.5));
+}
+
+/* Skeleton animation */
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.detail-header.loading .detail-icon-wrap {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+.detail-current.loading .detail-temp,
+.detail-current.loading .detail-desc {
+  visibility: hidden;
+  position: relative;
+}
+.detail-current.loading .detail-temp::before,
+.detail-current.loading .detail-desc::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+  border-radius: 6px;
+}
+.detail-current.loading .detail-temp::before { width: 80px; height: 2rem; }
+.detail-current.loading .detail-desc::before { width: 90px; height: 1rem; }
+.skeleton-box {
+  background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.2s infinite;
+}
+
+/* Forecast expand */
+.forecast-item.expanded .forecast-item-details { max-height: 600px; }
+.forecast-item.expanded { box-shadow: 0 4px 20px rgba(0, 184, 148, 0.2); }
+
+/* Tooltip & loading visibility (JS toggles .visible) */
+#region-tooltip.visible { opacity: 1; transform: translateY(0); }
+#map-loading.visible { opacity: 1; }

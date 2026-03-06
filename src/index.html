@@ -2,49 +2,57 @@
 <html lang="ru">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<title>Погода</title>
-		<link rel="stylesheet" href="css/decor.css" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="css/styles.css" />
 	</head>
-	<body>
-		<header>
-			<span class="header-logo">Беларусь</span>
-			<a href="se.html" class="nav-hidden" aria-hidden="true">⋯</a>
+	<body class="font-sans antialiased overflow-x-hidden m-0 bg-[#0f1419] text-[#1a1a1a]">
+		<header class="flex items-center px-4 py-3 sm:px-6 bg-gradient-to-br from-[#00b894] to-[#0984e3] shadow-lg shadow-teal-500/30">
+			<span class="text-lg sm:text-xl font-bold text-white tracking-wide drop-shadow-sm">Беларусь</span>
+			<a href="se.html" class="ml-auto text-white/60 hover:text-white text-xl transition-colors no-underline" aria-hidden="true">⋯</a>
 		</header>
-		<main>
-			<div id="belarus-view" class="belarus-view">
-				<div id="svg-wrap" class="svg-wrap">
-					<div id="svg-transform-wrap" class="svg-transform-wrap">
-						<svg id="belarus-svg" class="belarus-svg" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+		<main class="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
+			<div id="belarus-view" class="relative w-full h-[calc(100vh-3.5rem)] overflow-hidden bg-gradient-to-b from-[#0f1419] via-[#1a2838] to-[#0f1419]">
+				<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none" aria-hidden="true"></div>
+				<div id="svg-wrap" class="absolute inset-0 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none">
+					<div id="svg-transform-wrap" class="w-full h-full flex items-center justify-center origin-center">
+						<svg id="belarus-svg" class="belarus-svg w-full h-full" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
 							<g id="regions"></g>
 						</svg>
 					</div>
 				</div>
-				<div id="map-loading" class="map-loading"></div>
-			<div id="region-tooltip" class="region-tooltip" aria-hidden="true"></div>
+				<div id="map-loading" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-3 bg-white/95 rounded-xl shadow-2xl z-10 opacity-0 pointer-events-none transition-opacity font-semibold"></div>
+				<div id="region-tooltip" class="fixed px-4 py-2 bg-gradient-to-br from-[#00b894] to-[#0984e3] text-white text-sm font-semibold rounded-lg shadow-lg pointer-events-none z-50 opacity-0 translate-y-1 transition-all duration-150 whitespace-nowrap" aria-hidden="true"></div>
 			</div>
-			<aside id="detail-panel" class="detail-panel" aria-hidden="true">
-				<button class="detail-close" aria-label="Закрыть">×</button>
-				<div class="detail-content">
-					<div class="detail-header">
-						<h2 class="detail-city">—</h2>
-						<div class="detail-current">
-							<img class="detail-icon" src="" alt="" />
-							<div class="detail-main">
-								<span class="detail-temp">—</span>
-								<span class="detail-desc">—</span>
-							</div>
-						</div>
-						<div class="detail-extra"></div>
-					</div>
-					<section class="detail-forecast">
-						<h3></h3>
-						<div class="forecast-list"></div>
-					</section>
-				</div>
-			</aside>
-			<div id="detail-overlay" class="detail-overlay" aria-hidden="true"></div>
 		</main>
+
+		<div id="detail-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] opacity-0 invisible transition-all duration-300 pointer-events-none data-[visible=true]:opacity-100 data-[visible=true]:visible data-[visible=true]:pointer-events-auto" data-visible="false" aria-hidden="true"></div>
+		<aside id="detail-panel" class="fixed top-0 right-0 w-full sm:w-[min(400px,90vw)] max-w-full h-full bg-gradient-to-b from-white to-gray-50 z-[101] shadow-[-8px_0_40px_rgba(0,0,0,0.15)] overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-x-full data-[visible=true]:translate-x-0" data-visible="false" aria-hidden="true">
+			<button class="detail-close absolute top-4 right-4 w-10 h-10 border-0 bg-gray-100 hover:bg-teal-100 hover:text-[#00b894] text-2xl leading-none cursor-pointer rounded-xl transition-colors" aria-label="Закрыть">×</button>
+			<div class="p-6 sm:p-8 pt-16">
+				<div id="detail-header" class="mb-6 pb-6 border-b-2 border-teal-500/20">
+					<h2 id="detail-city" class="m-0 mb-4 text-xl sm:text-2xl font-bold bg-gradient-to-r from-[#00b894] to-[#0984e3] bg-clip-text text-transparent">—</h2>
+					<div class="detail-current flex items-center gap-4 sm:gap-5 mb-4">
+						<div class="detail-icon-wrap shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px]">
+							<img id="detail-icon" class="w-14 h-14 sm:w-[72px] sm:h-[72px] block drop-shadow-md" src="" alt="" />
+						</div>
+						<div class="flex flex-col gap-1">
+							<span id="detail-temp" class="text-2xl sm:text-4xl font-bold text-gray-900">—</span>
+							<span id="detail-desc" class="text-sm sm:text-base text-gray-500 capitalize">—</span>
+						</div>
+					</div>
+					<div id="detail-extra" class="grid grid-cols-2 gap-2 sm:gap-2.5 text-sm"></div>
+				</div>
+				<div id="hourly-chart" class="mb-6 py-4 hidden" aria-hidden="true"></div>
+				<section class="detail-forecast">
+					<h3 id="detail-forecast-title" class="m-0 mb-4 text-sm sm:text-base font-bold text-gray-700"></h3>
+					<div id="forecast-list" class="flex flex-col gap-2"></div>
+				</section>
+			</div>
+		</aside>
 
 		<script src="js/ow-config.js"></script>
 		<script src="data/countries.js"></script>
