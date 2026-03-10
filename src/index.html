@@ -17,16 +17,17 @@
 	</script>
 </head>
 
-<body class="font-sans antialiased overflow-x-hidden m-0 bg-[#0f1419] dark:bg-[#0f1419] text-[#1a1a1a] dark:text-gray-100 transition-colors duration-500">
-	<main class="relative min-h-screen overflow-hidden">
+<body
+	class="font-sans antialiased overflow-x-hidden m-0 bg-[#0f1419] dark:bg-[#0f1419] text-[#1a1a1a] dark:text-gray-100 transition-colors duration-500">
+	<main class="relative min-h-dvh overflow-hidden">
 		<div id="belarus-view"
-			class="relative w-full h-screen overflow-hidden bg-gradient-to-b from-[#e8f0f8] via-[#d0e4f0] to-[#c0d8e8] dark:from-[#0f1419] dark:via-[#1a2838] dark:to-[#0f1419] transition-colors duration-500">
+			class="relative w-full h-dvh overflow-hidden bg-gradient-to-b from-[#e8f0f8] via-[#d0e4f0] to-[#c0d8e8] dark:from-[#0f1419] dark:via-[#1a2838] dark:to-[#0f1419] transition-colors duration-500">
 			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-black/40 pointer-events-none"
 				aria-hidden="true"></div>
 			<div id="svg-wrap"
 				class="absolute inset-0 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none">
-				<div id="svg-transform-wrap" class="w-full h-screen flex items-center justify-center origin-center">
-					<svg id="belarus-svg" class="belarus-svg w-full h-full min-h-screen" viewBox="0 0 400 320"
+				<div id="svg-transform-wrap" class="w-full h-dvh flex items-center justify-center origin-center">
+					<svg id="belarus-svg" class="belarus-svg w-full h-full min-h-dvh" viewBox="0 0 400 320"
 						xmlns="http://www.w3.org/2000/svg">
 						<g id="regions"></g>
 						<g id="cities-layer"></g>
@@ -38,8 +39,8 @@
 				aria-hidden="true"></div>
 			<div id="focus-svg-wrap"
 				class="absolute inset-0 z-6 pointer-events-none opacity-0 transition-opacity duration-300">
-				<div id="focus-transform-wrap" class="w-full h-screen flex items-center justify-center origin-center">
-					<svg id="focus-svg" class="w-full h-full min-h-screen" viewBox="0 0 400 320"
+				<div id="focus-transform-wrap" class="w-full h-dvh flex items-center justify-center origin-center">
+					<svg id="focus-svg" class="w-full h-full min-h-dvh" viewBox="0 0 400 320"
 						xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
 				</div>
 			</div>
@@ -50,7 +51,7 @@
 				class="fixed px-4 py-2 bg-gradient-to-br from-[#00b894] to-[#0984e3] text-white text-sm font-semibold rounded-lg shadow-lg pointer-events-none z-50 opacity-0 translate-y-1 data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0 transition-all duration-150 whitespace-nowrap"
 				data-visible="false" aria-hidden="true"></div>
 			<button id="zoom-reset"
-				class="absolute bottom-4 right-4 z-20 hidden items-center gap-2 px-3 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold rounded-xl shadow-lg border border-white/50 hover:bg-teal-50 active:scale-95 transition-all"
+				class="absolute bottom-6 right-4 z-20 hidden items-center gap-2 px-3 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold rounded-xl shadow-lg border border-white/50 hover:bg-teal-50 active:scale-95 transition-all"
 				aria-label="Сбросить зум">
 				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
 					stroke-linecap="round" stroke-linejoin="round">
@@ -60,12 +61,13 @@
 				<span class="hidden sm:inline">Сбросить</span>
 			</button>
 			<button id="theme-toggle"
-				class="absolute bottom-4 left-4 z-[105] w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
+				class="absolute bottom-6 left-4 z-[105] w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
 				aria-label="Переключить тему">
 				<svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" viewBox="0 0 24 24" fill="none"
 					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<circle cx="12" cy="12" r="5" />
-					<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+					<path
+						d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
 				</svg>
 				<svg id="theme-icon-moon" class="w-5 h-5 block dark:hidden" viewBox="0 0 24 24" fill="none"
 					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -73,7 +75,7 @@
 				</svg>
 			</button>
 			<div id="map-hint"
-				class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-600 text-xs font-medium rounded-xl shadow-lg border border-white/30 transition-opacity duration-500 sm:hidden"
+				class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-600 text-xs font-medium rounded-xl shadow-lg border border-white/30 transition-opacity duration-500 sm:hidden"
 				aria-hidden="true">Нажмите на область или город для просмотра погоды</div>
 		</div>
 	</main>
@@ -102,7 +104,8 @@
 			<div class="relative z-1 flex flex-col gap-4 p-6 sm:p-8">
 				<div class="flex items-center gap-3">
 					<h2 id="detail-city"
-						class="m-0 text-xl sm:text-2xl font-bold text-teal-500 dark:text-teal-400 transition-colors duration-300 min-w-0">—</h2>
+						class="m-0 text-xl sm:text-2xl font-bold text-teal-500 dark:text-teal-400 transition-colors duration-300 min-w-0">
+						—</h2>
 					<div id="mini-map-wrap"
 						class="hidden shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-[#1a2838]/80 sm:!hidden"
 						aria-hidden="true">
@@ -114,9 +117,9 @@
 					<div class="detail-icon-wrap shrink-0 w-[72px] h-[72px]"></div>
 					<div class="flex flex-col gap-1">
 						<span id="detail-temp"
-								class="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white transition-colors duration-300">—</span>
+							class="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white transition-colors duration-300">—</span>
 						<span id="detail-desc"
-								class="text-sm sm:text-base text-gray-500 dark:text-gray-400 capitalize transition-colors duration-300">—</span>
+							class="text-sm sm:text-base text-gray-500 dark:text-gray-400 capitalize transition-colors duration-300">—</span>
 					</div>
 				</div>
 				<div id="detail-extra" class="grid grid-cols-2 gap-2 sm:gap-2.5 text-sm"></div>
@@ -128,7 +131,8 @@
 		<div class="flex flex-col gap-6 p-6 sm:p-8">
 			<div id="hourly-chart" class="py-4 hidden" aria-hidden="true"></div>
 			<section class="detail-forecast flex flex-col gap-4">
-				<h3 id="detail-forecast-title" class="m-0 text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200"></h3>
+				<h3 id="detail-forecast-title"
+					class="m-0 text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200"></h3>
 				<div id="forecast-list" class="flex flex-col gap-2"></div>
 			</section>
 		</div>
