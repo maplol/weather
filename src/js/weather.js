@@ -186,6 +186,39 @@
     return code ? `${OWM_ICON}/${code}@2x.png` : "";
   }
 
+  function animatedIcon(code, size = 72) {
+    const s = size;
+    const half = s / 2;
+    const isNight = code?.endsWith("n");
+    const base = code?.replace(/[dn]$/, "");
+    const sun = `<circle cx="${half * 0.92}" cy="${half * 0.85}" r="${s * 0.18}" fill="#FBBF24" class="anim-sun"><animate attributeName="r" values="${s * 0.18};${s * 0.21};${s * 0.18}" dur="3s" repeatCount="indefinite"/></circle>`;
+    const moon = `<circle cx="${half * 0.92}" cy="${half * 0.8}" r="${s * 0.15}" fill="#CBD5E1" class="anim-moon"/>`;
+    const star = isNight ? sun.replace(/#FBBF24/, "#CBD5E1") : "";
+    const celestial = isNight ? moon : sun;
+    const cloud = (x, y, sc, op = 1) => `<g transform="translate(${x},${y}) scale(${sc})" opacity="${op}"><ellipse cx="0" cy="0" rx="${s * 0.22}" ry="${s * 0.13}" fill="#94A3B8"/><ellipse cx="${-s * 0.1}" cy="${s * 0.02}" rx="${s * 0.15}" ry="${s * 0.1}" fill="#CBD5E1"/><ellipse cx="${s * 0.12}" cy="${s * 0.02}" rx="${s * 0.16}" ry="${s * 0.11}" fill="#E2E8F0"/></g>`;
+    const rain = (cx, dy) => `<line x1="${cx}" y1="${half + dy}" x2="${cx - 2}" y2="${half + dy + s * 0.1}" stroke="#60A5FA" stroke-width="1.5" stroke-linecap="round"><animate attributeName="y1" values="${half + dy};${half + dy + 3};${half + dy}" dur="0.8s" repeatCount="indefinite"/><animate attributeName="y2" values="${half + dy + s * 0.1};${half + dy + s * 0.1 + 3};${half + dy + s * 0.1}" dur="0.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite"/></line>`;
+    const snow = (cx, dy) => `<circle cx="${cx}" cy="${half + dy}" r="1.5" fill="#E2E8F0"><animate attributeName="cy" values="${half + dy};${half + dy + 6};${half + dy}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/></circle>`;
+    const bolt = `<polygon points="${half - 2},${half - 2} ${half + 1},${half + 4} ${half - 1},${half + 4} ${half + 2},${half + 10}" fill="#FBBF24"><animate attributeName="opacity" values="1;0;1;1;0;1" dur="2s" repeatCount="indefinite"/></polygon>`;
+
+    let content = "";
+    switch (base) {
+      case "01": content = isNight
+        ? `${moon}<animate attributeName="opacity" values="0.8;1;0.8" dur="4s" repeatCount="indefinite"/>`
+        : `${sun}`; break;
+      case "02": content = `${celestial}${cloud(half * 1.1, half * 1.05, 0.9)}`; break;
+      case "03": content = `${cloud(half * 0.8, half * 0.7, 0.8, 0.6)}${cloud(half * 1.1, half * 1.0, 1)}`; break;
+      case "04": content = `${cloud(half * 0.7, half * 0.65, 0.7, 0.5)}${cloud(half * 1.05, half * 0.85, 1)}${cloud(half * 0.5, half * 1.1, 0.8, 0.7)}`; break;
+      case "09": content = `${cloud(half, half * 0.7, 1)}${rain(half - 6, 6)}${rain(half, 4)}${rain(half + 6, 8)}`; break;
+      case "10": content = `${celestial}${cloud(half * 1.05, half * 0.9, 0.95)}${rain(half - 4, 10)}${rain(half + 4, 12)}`; break;
+      case "11": content = `${cloud(half, half * 0.7, 1)}${bolt}${rain(half - 7, 6)}${rain(half + 7, 8)}`; break;
+      case "13": content = `${cloud(half, half * 0.7, 1)}${snow(half - 6, 6)}${snow(half, 10)}${snow(half + 6, 4)}${snow(half + 3, 14)}`; break;
+      case "50": content = `${[0.3, 0.45, 0.6, 0.75].map((f, i) => `<line x1="${s * 0.2}" y1="${s * f}" x2="${s * 0.8}" y2="${s * f}" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" opacity="${0.3 + i * 0.15}"><animate attributeName="x1" values="${s * 0.2};${s * 0.25};${s * 0.2}" dur="${2 + i * 0.3}s" repeatCount="indefinite"/></line>`).join("")}`; break;
+      default: content = sun;
+    }
+
+    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-lg">${content}</svg>`;
+  }
+
   function locale() {
     return "ru-RU";
   }
@@ -259,6 +292,10 @@
     if (!hourly?.time?.length) return { isFallback: true, items: [] };
     const now = new Date();
     const todayKey = now.toDateString();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowKey = tomorrow.toDateString();
+
     const all = hourly.time.map((iso, i) => {
       const dt = new Date(iso);
       return {
@@ -266,12 +303,34 @@
         time: dt.toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" }),
         temp: Math.round(hourly.temperature_2m?.[i] ?? 0),
         pop: hourly.precipitation_probability?.[i] ?? 0,
+        dayKey: dt.toDateString(),
       };
     });
-    let items = all.filter((item) => item.dt.toDateString() === todayKey && item.dt >= now && item.dt.getHours() % 3 === 0);
-    const useFallback = items.length === 0;
-    if (useFallback) items = all.filter((item) => item.dt >= now && item.dt.getHours() % 3 === 0).slice(0, 8);
-    return { isFallback: useFallback, items: items.slice(0, 8) };
+
+    const todayItems = all.filter((h) => h.dayKey === todayKey && h.dt >= now && h.dt.getHours() % 3 === 0);
+    if (todayItems.length >= 4) return { isFallback: false, items: todayItems.slice(0, 8) };
+
+    const tomorrowItems = all.filter((h) => h.dayKey === tomorrowKey && h.dt.getHours() % 3 === 0);
+    const combined = [...todayItems];
+    if (tomorrowItems.length && todayItems.length > 0) {
+      combined.push({ separator: true, label: "завтра" });
+    }
+    combined.push(...tomorrowItems);
+    const total = combined.filter((h) => !h.separator).length;
+    if (total === 0) {
+      const fallback = all.filter((h) => h.dt >= now && h.dt.getHours() % 3 === 0).slice(0, 8);
+      return { isFallback: true, items: fallback };
+    }
+
+    const limited = [];
+    let count = 0;
+    for (const item of combined) {
+      if (item.separator) { limited.push(item); continue; }
+      if (count >= 8) break;
+      limited.push(item);
+      count++;
+    }
+    return { isFallback: false, items: limited };
   }
 
   function parseForecast(data) {
@@ -481,10 +540,9 @@
     }
     set("detail-temp", cur.temp != null ? cur.temp + "°" : "—");
     set("detail-desc", cur.desc);
-    const iconEl = document.getElementById("detail-icon");
-    if (iconEl) {
-      iconEl.src = iconUrl(cur.icon);
-      iconEl.alt = cur.desc;
+    const iconWrap = document.querySelector(".detail-icon-wrap");
+    if (iconWrap) {
+      iconWrap.innerHTML = animatedIcon(cur.icon, 72);
     }
 
     const extra = document.getElementById("detail-extra");
@@ -495,7 +553,7 @@
       if (cur.humidity != null) parts.push(`${tr("humidity")}: ${cur.humidity}%`);
       if (cur.pressure != null) parts.push(`${tr("pressure")}: ${Math.round(cur.pressure * 0.75)} ${tr("mmHg")}`);
       if (cur.wind != null) parts.push(`${tr("wind")}: ${cur.wind} ${tr("mps")}`);
-      extra.innerHTML = parts.map((p) => `<span class="detail-extra-item p-2.5 rounded-xl bg-[#e8f8f5] text-gray-700 transition-colors duration-300">${esc(p)}</span>`).join("");
+      extra.innerHTML = parts.map((p) => `<span class="detail-extra-item p-2.5 rounded-xl bg-[#e8f8f5] dark:bg-white/10 text-gray-700 dark:text-gray-300 transition-colors duration-300">${esc(p)}</span>`).join("");
     }
 
     fetchCityPhotos(regionId).then((photos) => {
@@ -509,14 +567,20 @@
     });
 
     function renderBars(data, barMaxH) {
-      if (!data.length) return "";
-      const minT = Math.min(...data.map((h) => h.temp));
-      const maxT = Math.max(...data.map((h) => h.temp));
+      const realData = data.filter((h) => !h.separator);
+      if (!realData.length) return "";
+      const minT = Math.min(...realData.map((h) => h.temp));
+      const maxT = Math.max(...realData.map((h) => h.temp));
       const range = Math.max(maxT - minT, 1);
       return `
         <div class="flex items-end gap-1">
           ${data
             .map((h) => {
+              if (h.separator) return `
+                <div class="flex flex-col items-center justify-end gap-1 px-0.5">
+                  <span class="text-[0.55rem] text-gray-400 font-semibold whitespace-nowrap -rotate-90 origin-center mb-2">${esc(h.label)}</span>
+                  <div class="w-px bg-gray-300 dark:bg-gray-600" style="height:${barMaxH}px"></div>
+                </div>`;
               const h_px = 16 + ((h.temp - minT) / range) * (barMaxH - 16);
               return `
               <div class="flex-1 flex flex-col items-center gap-1 min-w-0">
@@ -535,7 +599,7 @@
     if (hourly && hourlyData.length > 0) {
       hourly.className = "flex flex-col gap-3";
       hourly.innerHTML = `
-        <div class="text-sm font-semibold text-gray-600">${esc(isFallback ? tr("hourlyNext24") : tr("hourlyToday"))}</div>
+        <div class="text-sm font-semibold text-gray-600 dark:text-gray-300">${esc(isFallback ? tr("hourlyNext24") : tr("hourlyToday"))}</div>
         ${renderBars(hourlyData.slice(0, 8), 72)}
       `;
       hourly.classList.remove("hidden");
@@ -564,11 +628,11 @@
             const details = hours.length
               ? `
               <div class="forecast-item-details col-span-full max-h-0 overflow-hidden transition-[max-height] duration-300 ease-out">
-                <div class="pt-4 mt-0 border-t border-teal-500/20 grid grid-cols-2 gap-3 text-sm">
+                <div class="pt-4 mt-0 border-t border-teal-500/20 grid grid-cols-2 gap-3 text-sm text-gray-600 dark:text-gray-300">
                   <span class="flex items-center gap-2"><strong>${esc(tr("humidity"))}:</strong> ${esc(midHour?.humidity ?? "—")}%</span>
                   <span class="flex items-center gap-2"><strong>${esc(tr("wind"))}:</strong> ${esc((midHour?.wind ?? 0).toFixed(1))} ${esc(tr("mps"))}</span>
                   <span class="flex items-center gap-2"><strong>${esc(tr("precipitation"))}:</strong> до ${esc(Math.max(...hours.map((h) => h.pop)))}%</span>
-                  <div class="col-span-2 pt-2 border-t border-dashed border-gray-200">
+                  <div class="col-span-2 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
                     ${renderBars(graphHours, 60)}
                   </div>
                 </div>
@@ -576,11 +640,11 @@
             `
               : "";
             return `
-              <div class="forecast-item grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 sm:p-3.5 bg-white rounded-xl shadow-sm transition-all cursor-pointer select-none hover:translate-x-1 hover:shadow-lg hover:shadow-teal-500/15" role="button" tabindex="0" aria-expanded="false" data-expanded="false">
-                <img src="${iconUrl(icon)}" alt="${esc(descCap)}" title="${esc(descCap)}" class="w-10 h-10" />
+              <div class="forecast-item grid grid-cols-[auto_1fr_auto] items-center gap-4 p-3 sm:p-3.5 bg-white dark:bg-white/5 rounded-xl shadow-sm transition-all cursor-pointer select-none hover:translate-x-1 hover:shadow-lg hover:shadow-teal-500/15" role="button" tabindex="0" aria-expanded="false" data-expanded="false">
+                <div class="w-10 h-10" title="${esc(descCap)}">${animatedIcon(icon, 40)}</div>
                 <div class="flex flex-col gap-0.5 min-w-0">
-                  <span class="font-semibold text-gray-600">${esc(d.day)}</span>
-                  <span class="text-sm text-gray-500 capitalize">${esc(descCap)}</span>
+                  <span class="font-semibold text-gray-600 dark:text-gray-200">${esc(d.day)}</span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400 capitalize">${esc(descCap)}</span>
                 </div>
                 <span class="font-bold text-teal">${esc(d.temp)}°</span>
                 ${details}
@@ -720,6 +784,14 @@
         x: (touches[0].clientX + touches[1].clientX) / 2,
         y: (touches[0].clientY + touches[1].clientY) / 2,
       };
+    }
+
+    const themeBtn = document.getElementById("theme-toggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        const isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      });
     }
 
     const resetBtn = document.getElementById("zoom-reset");
@@ -1083,6 +1155,98 @@
         const focusSvgWrap = document.getElementById("focus-svg-wrap");
         const focusSvg = document.getElementById("focus-svg");
 
+        function buildFocusContent(targetSvg, targetPath, gradIdSuffix) {
+          const bb = targetPath.getBBox();
+          const ns = "http://www.w3.org/2000/svg";
+          const gradId = "focus-grad-" + gradIdSuffix;
+          const defs = document.createElementNS(ns, "defs");
+          const grad = document.createElementNS(ns, "linearGradient");
+          grad.setAttribute("id", gradId);
+          grad.setAttribute("x1", "0%"); grad.setAttribute("y1", "0%");
+          grad.setAttribute("x2", "100%"); grad.setAttribute("y2", "100%");
+          for (const [off, color, op] of [["0%","#0d9488","1"],["50%","#14b8a6","0.95"],["100%","#06b6d4","0.9"]]) {
+            const s = document.createElementNS(ns, "stop");
+            s.setAttribute("offset", off);
+            s.setAttribute("stop-color", color);
+            s.setAttribute("stop-opacity", op);
+            grad.appendChild(s);
+          }
+          defs.appendChild(grad);
+          targetSvg.appendChild(defs);
+
+          const isRegion = targetPath.classList.contains("region");
+          const clone = targetPath.cloneNode(true);
+          clone.removeAttribute("class");
+          clone.setAttribute("fill", `url(#${gradId})`);
+          clone.setAttribute("stroke", "#5eead4");
+          clone.setAttribute("stroke-width", "0.6");
+          targetSvg.appendChild(clone);
+
+          if (isRegion) {
+            const regionId = targetPath.getAttribute("data-region-id");
+            const innerCities = document.querySelectorAll(`#cities-layer path.city-district[data-region-id="${regionId}"]`);
+            for (const cp of innerCities) {
+              const hole = cp.cloneNode(true);
+              hole.removeAttribute("class");
+              hole.setAttribute("fill", `url(#${gradId})`);
+              hole.setAttribute("stroke", "none");
+              targetSvg.appendChild(hole);
+            }
+          }
+
+          const cityName = isRegion
+            ? (targetPath.getAttribute("data-region-name") || "")
+            : (targetPath.getAttribute("data-city-name") || "");
+          if (cityName) {
+            const cx = bb.x + bb.width / 2;
+            const cy = bb.y + bb.height / 2;
+            const fontSize = Math.min(bb.height * 0.22, bb.width * 0.12, 5.5);
+            const lbl = document.createElementNS(ns, "text");
+            lbl.setAttribute("x", cx.toFixed(1));
+            lbl.setAttribute("y", cy.toFixed(1));
+            lbl.setAttribute("class", "city-label");
+            lbl.setAttribute("fill", "#fff");
+            lbl.setAttribute("stroke", "rgba(0,0,0,0.55)");
+            lbl.setAttribute("stroke-width", "1");
+            lbl.setAttribute("paint-order", "stroke fill");
+            lbl.setAttribute("stroke-linejoin", "round");
+            lbl.setAttribute("text-anchor", "middle");
+            lbl.setAttribute("dominant-baseline", "central");
+            lbl.setAttribute("font-family", "Manrope, system-ui, sans-serif");
+            lbl.setAttribute("font-weight", "700");
+            lbl.setAttribute("letter-spacing", "0.02em");
+            lbl.style.fontSize = Math.max(2.5, fontSize).toFixed(2) + "px";
+            lbl.textContent = cityName;
+            targetSvg.appendChild(lbl);
+          }
+          return bb;
+        }
+
+        function fillMiniMap(targetPath) {
+          const miniWrap = document.getElementById("mini-map-wrap");
+          const miniSvg = document.getElementById("mini-map-svg");
+          if (!miniWrap || !miniSvg) return;
+          miniSvg.innerHTML = "";
+          const bb = targetPath.getBBox();
+          const pad = Math.max(bb.width, bb.height) * 0.12;
+          miniSvg.setAttribute("viewBox",
+            `${(bb.x - pad).toFixed(1)} ${(bb.y - pad).toFixed(1)} ${(bb.width + pad * 2).toFixed(1)} ${(bb.height + pad * 2).toFixed(1)}`);
+          const clone = targetPath.cloneNode(true);
+          clone.removeAttribute("class");
+          clone.setAttribute("fill", "#14b8a6");
+          clone.setAttribute("stroke", "#5eead4");
+          clone.setAttribute("stroke-width", "0.8");
+          miniSvg.appendChild(clone);
+          miniWrap.classList.remove("hidden");
+        }
+
+        function hideMiniMap() {
+          const miniWrap = document.getElementById("mini-map-wrap");
+          const miniSvg = document.getElementById("mini-map-svg");
+          if (miniWrap) miniWrap.classList.add("hidden");
+          if (miniSvg) miniSvg.innerHTML = "";
+        }
+
         function zoomToPath(targetPath) {
           const svg = document.getElementById("belarus-svg");
           if (!svg || !targetPath) return;
@@ -1103,94 +1267,24 @@
           const targetZoom = Math.min(8, Math.max(isReg ? 1.5 : 2.5, fitZoom));
           zoomCtrl.focusOnPoint(elX, elY, targetZoom);
 
-          if (focusOverlay) {
-            focusOverlay.style.opacity = "1";
-          }
+          if (focusOverlay) focusOverlay.style.opacity = "1";
 
           if (focusSvg && focusSvgWrap) {
             focusSvg.innerHTML = "";
-
-            const ns = "http://www.w3.org/2000/svg";
-            const gradId = "focus-grad";
-            const defs = document.createElementNS(ns, "defs");
-
-            const grad = document.createElementNS(ns, "linearGradient");
-            grad.setAttribute("id", gradId);
-            grad.setAttribute("x1", "0%"); grad.setAttribute("y1", "0%");
-            grad.setAttribute("x2", "100%"); grad.setAttribute("y2", "100%");
-            const stops = [
-              ["0%", "#0d9488", "1"],
-              ["50%", "#14b8a6", "0.95"],
-              ["100%", "#06b6d4", "0.9"],
-            ];
-            for (const [off, color, op] of stops) {
-              const s = document.createElementNS(ns, "stop");
-              s.setAttribute("offset", off);
-              s.setAttribute("stop-color", color);
-              s.setAttribute("stop-opacity", op);
-              grad.appendChild(s);
-            }
-            defs.appendChild(grad);
-            focusSvg.appendChild(defs);
-
-            const isRegion = targetPath.classList.contains("region");
-
-            const clone = targetPath.cloneNode(true);
-            clone.removeAttribute("class");
-            clone.setAttribute("fill", `url(#${gradId})`);
-            clone.setAttribute("stroke", "#5eead4");
-            clone.setAttribute("stroke-width", "0.6");
-            focusSvg.appendChild(clone);
-
-            if (isRegion) {
-              const regionId = targetPath.getAttribute("data-region-id");
-              const innerCities = document.querySelectorAll(`#cities-layer path.city-district[data-region-id="${regionId}"]`);
-              for (const cp of innerCities) {
-                const hole = cp.cloneNode(true);
-                hole.removeAttribute("class");
-                hole.setAttribute("fill", `url(#${gradId})`);
-                hole.setAttribute("stroke", "none");
-                focusSvg.appendChild(hole);
-              }
-            }
-            const cityName = isRegion
-              ? (targetPath.getAttribute("data-region-name") || "")
-              : (targetPath.getAttribute("data-city-name") || "");
-            if (cityName) {
-              const cx = bb.x + bb.width / 2;
-              const cy = bb.y + bb.height / 2;
-              const fontSize = Math.min(bb.height * 0.22, bb.width * 0.12, 5.5);
-              const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-              lbl.setAttribute("x", cx.toFixed(1));
-              lbl.setAttribute("y", cy.toFixed(1));
-              lbl.setAttribute("class", "city-label");
-              lbl.setAttribute("fill", "#fff");
-              lbl.setAttribute("stroke", "rgba(0,0,0,0.55)");
-              lbl.setAttribute("stroke-width", "1");
-              lbl.setAttribute("paint-order", "stroke fill");
-              lbl.setAttribute("stroke-linejoin", "round");
-              lbl.setAttribute("text-anchor", "middle");
-              lbl.setAttribute("dominant-baseline", "central");
-              lbl.setAttribute("font-family", "Manrope, system-ui, sans-serif");
-              lbl.setAttribute("font-weight", "700");
-              lbl.setAttribute("letter-spacing", "0.02em");
-              lbl.style.fontSize = Math.max(2.5, fontSize).toFixed(2) + "px";
-              lbl.textContent = cityName;
-              focusSvg.appendChild(lbl);
-            }
-
+            buildFocusContent(focusSvg, targetPath, "main");
             focusSvgWrap.style.opacity = "1";
           }
+
+          fillMiniMap(targetPath);
         }
 
         function clearMapFocus() {
-          if (focusOverlay) {
-            focusOverlay.style.opacity = "0";
-          }
+          if (focusOverlay) focusOverlay.style.opacity = "0";
           if (focusSvg && focusSvgWrap) {
             focusSvgWrap.style.opacity = "0";
             setTimeout(() => { focusSvg.innerHTML = ""; }, 400);
           }
+          hideMiniMap();
           zoomCtrl.unfocus();
         }
         _clearMapFocus = clearMapFocus;

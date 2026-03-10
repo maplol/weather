@@ -3,6 +3,8 @@
 @source "../**/*.html";
 @source "../**/*.js";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-teal: #00b894;
   --color-teal-dark: #009776;
@@ -12,28 +14,27 @@
   --font-sans: "Manrope", system-ui, sans-serif;
 }
 
-/* SVG regions - can't use Tailwind */
+/* === Dark theme (default) === */
 .belarus-svg path.region {
   fill: rgba(0, 184, 148, 0.35);
   stroke: rgba(0, 152, 118, 0.9);
   stroke-width: 1.5;
   cursor: pointer;
   pointer-events: fill;
-  transition: fill 0.2s, stroke 0.2s, opacity 0.4s;
+  transition: fill 0.3s, stroke 0.3s, opacity 0.4s;
 }
 .belarus-svg path.region:hover,
 .belarus-svg path.region.hover {
   fill: rgba(0, 184, 148, 0.6);
   stroke: rgba(255, 255, 255, 0.9);
 }
-
 .belarus-svg path.city-district {
   fill: rgba(9, 132, 227, 0.45);
   stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 1.2;
   cursor: pointer;
   pointer-events: fill;
-  transition: fill 0.2s, stroke 0.2s, opacity 0.4s;
+  transition: fill 0.3s, stroke 0.3s, opacity 0.4s;
 }
 .belarus-svg path.city-district:hover,
 .belarus-svg path.city-district.hover {
@@ -41,9 +42,9 @@
   stroke: #fff;
   stroke-width: 1.5;
 }
-
 .belarus-svg .city-label,
-#focus-svg .city-label {
+#focus-svg .city-label,
+#mini-map-svg .city-label {
   font-size: 4px;
   font-family: "Manrope", system-ui, sans-serif;
   font-weight: 700;
@@ -56,6 +57,32 @@
   stroke-width: 1px;
   stroke-linejoin: round;
   letter-spacing: 0.02em;
+  transition: fill 0.3s, stroke 0.3s;
+}
+
+/* === Light theme overrides === */
+html:not(.dark) .belarus-svg path.region {
+  fill: rgba(0, 184, 148, 0.5);
+  stroke: rgba(0, 130, 100, 0.7);
+}
+html:not(.dark) .belarus-svg path.region:hover,
+html:not(.dark) .belarus-svg path.region.hover {
+  fill: rgba(0, 184, 148, 0.75);
+  stroke: rgba(0, 100, 80, 0.9);
+}
+html:not(.dark) .belarus-svg path.city-district {
+  fill: rgba(9, 132, 227, 0.55);
+  stroke: rgba(9, 100, 180, 0.6);
+}
+html:not(.dark) .belarus-svg path.city-district:hover,
+html:not(.dark) .belarus-svg path.city-district.hover {
+  fill: rgba(9, 132, 227, 0.8);
+  stroke: rgba(9, 100, 180, 0.9);
+}
+html:not(.dark) .belarus-svg .city-label,
+html:not(.dark) #focus-svg .city-label {
+  fill: #1e293b;
+  stroke: rgba(255, 255, 255, 0.8);
 }
 
 /* Skeleton animation */
@@ -90,6 +117,10 @@
   background: linear-gradient(90deg, #e8e8e8 25%, #f0f0f0 50%, #e8e8e8 75%);
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.2s infinite;
+}
+:where(.dark) .skeleton-box {
+  background: linear-gradient(90deg, #2a2a3a 25%, #333345 50%, #2a2a3a 75%);
+  background-size: 200% 100%;
 }
 
 /* Text contrast on photo backgrounds */

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 
 <head>
 	<meta charset="utf-8" />
@@ -10,13 +10,18 @@
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
 	<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	<link rel="stylesheet" href="css/styles.css" />
+	<script>
+		const t = localStorage.getItem("theme");
+		if (t === "light" || (!t && window.matchMedia("(prefers-color-scheme: light)").matches))
+			document.documentElement.classList.remove("dark");
+	</script>
 </head>
 
-<body class="font-sans antialiased overflow-x-hidden m-0 bg-[#0f1419] text-[#1a1a1a]">
+<body class="font-sans antialiased overflow-x-hidden m-0 bg-[#0f1419] dark:bg-[#0f1419] text-[#1a1a1a] dark:text-gray-100 transition-colors duration-500">
 	<main class="relative min-h-screen overflow-hidden">
 		<div id="belarus-view"
-			class="relative w-full h-screen overflow-hidden bg-gradient-to-b from-[#0f1419] via-[#1a2838] to-[#0f1419]">
-			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40 pointer-events-none"
+			class="relative w-full h-screen overflow-hidden bg-gradient-to-b from-[#e8f0f8] via-[#d0e4f0] to-[#c0d8e8] dark:from-[#0f1419] dark:via-[#1a2838] dark:to-[#0f1419] transition-colors duration-500">
+			<div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/30 dark:to-black/40 pointer-events-none"
 				aria-hidden="true"></div>
 			<div id="svg-wrap"
 				class="absolute inset-0 flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none">
@@ -39,13 +44,13 @@
 				</div>
 			</div>
 			<div id="map-loading"
-				class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-3 bg-white/95 rounded-xl shadow-2xl z-10 opacity-0 data-[visible=true]:opacity-100 pointer-events-none transition-opacity font-semibold"
+				class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-3 bg-white/95 dark:bg-gray-800/95 dark:text-white rounded-xl shadow-2xl z-10 opacity-0 data-[visible=true]:opacity-100 pointer-events-none transition-opacity font-semibold"
 				data-visible="false"></div>
 			<div id="region-tooltip"
 				class="fixed px-4 py-2 bg-gradient-to-br from-[#00b894] to-[#0984e3] text-white text-sm font-semibold rounded-lg shadow-lg pointer-events-none z-50 opacity-0 translate-y-1 data-[visible=true]:opacity-100 data-[visible=true]:translate-y-0 transition-all duration-150 whitespace-nowrap"
 				data-visible="false" aria-hidden="true"></div>
 			<button id="zoom-reset"
-				class="absolute bottom-4 right-4 z-20 hidden items-center gap-2 px-3 py-2 bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold rounded-xl shadow-lg border border-white/50 hover:bg-teal-50 active:scale-95 transition-all"
+				class="absolute bottom-4 right-4 z-20 hidden items-center gap-2 px-3 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-700 text-xs font-semibold rounded-xl shadow-lg border border-white/50 hover:bg-teal-50 active:scale-95 transition-all"
 				aria-label="Сбросить зум">
 				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
 					stroke-linecap="round" stroke-linejoin="round">
@@ -54,20 +59,33 @@
 				</svg>
 				<span class="hidden sm:inline">Сбросить</span>
 			</button>
+			<button id="theme-toggle"
+				class="absolute bottom-4 left-4 z-[105] w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
+				aria-label="Переключить тему">
+				<svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" viewBox="0 0 24 24" fill="none"
+					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="5" />
+					<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+				</svg>
+				<svg id="theme-icon-moon" class="w-5 h-5 block dark:hidden" viewBox="0 0 24 24" fill="none"
+					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+				</svg>
+			</button>
 			<div id="map-hint"
-				class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-white/90 backdrop-blur-sm text-gray-600 text-xs font-medium rounded-xl shadow-lg border border-white/30 transition-opacity duration-500 sm:hidden"
+				class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-white/90 dark:bg-white/90 backdrop-blur-sm text-gray-600 text-xs font-medium rounded-xl shadow-lg border border-white/30 transition-opacity duration-500 sm:hidden"
 				aria-hidden="true">Нажмите на область или город для просмотра погоды</div>
 		</div>
 	</main>
 
 	<div id="detail-overlay"
-		class="fixed inset-0 z-100 opacity-0 invisible transition-all duration-300 pointer-events-none data-[visible=true]:opacity-100 data-[visible=true]:visible data-[visible=true]:pointer-events-auto"
+		class="fixed inset-0 z-[100] opacity-0 invisible transition-all duration-300 pointer-events-none data-[visible=true]:opacity-100 data-[visible=true]:visible data-[visible=true]:pointer-events-auto"
 		data-visible="false" aria-hidden="true"></div>
 	<aside id="detail-panel" role="dialog" aria-modal="true" aria-label="Погода региона"
-		class="fixed top-0 right-0 w-full sm:w-[min(400px,90vw)] max-w-full h-full bg-gradient-to-b from-white to-gray-50 z-[101] shadow-[-8px_0_40px_rgba(0,0,0,0.15)] overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-x-full data-[visible=true]:translate-x-0"
+		class="fixed top-0 right-0 w-full sm:w-[min(400px,90vw)] max-w-full h-full bg-gradient-to-b from-white to-gray-50 dark:from-[#1a2233] dark:to-[#111827] z-[101] shadow-[-8px_0_40px_rgba(0,0,0,0.15)] overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-x-full data-[visible=true]:translate-x-0"
 		data-visible="false" aria-hidden="true">
 		<button
-			class="detail-close absolute top-4 right-4 z-10 w-10 h-10 border-0 bg-white/80 backdrop-blur-sm hover:bg-teal-100 hover:text-teal text-2xl leading-none cursor-pointer rounded-xl transition-colors"
+			class="detail-close absolute top-4 right-4 z-10 w-10 h-10 border-0 bg-white/80 dark:bg-white/10 backdrop-blur-sm hover:bg-teal-100 dark:hover:bg-white/20 hover:text-teal text-2xl leading-none cursor-pointer rounded-xl transition-colors dark:text-white"
 			aria-label="Закрыть">×</button>
 		<div id="detail-header" class="relative overflow-hidden transition-all duration-500">
 			<div id="photo-slider" class="absolute inset-0 hidden">
@@ -82,30 +100,35 @@
 			</div>
 			<div id="detail-header-fallback" class="absolute inset-0 bg-gradient-to-br from-teal to-blue hidden"></div>
 			<div class="relative z-1 flex flex-col gap-4 p-6 sm:p-8">
-				<h2 id="detail-city"
-					class="m-0 text-xl sm:text-2xl font-bold text-teal-500 transition-colors duration-300">—</h2>
-				<div class="detail-current flex items-center gap-4 sm:gap-5">
-					<div class="detail-icon-wrap shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px]">
-						<img id="detail-icon" class="w-14 h-14 sm:w-[72px] sm:h-[72px] block drop-shadow-lg" src=""
-							alt="" />
+				<div class="flex items-center gap-3">
+					<h2 id="detail-city"
+						class="m-0 text-xl sm:text-2xl font-bold text-teal-500 dark:text-teal-400 transition-colors duration-300 min-w-0">—</h2>
+					<div id="mini-map-wrap"
+						class="hidden shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-[#1a2838]/80 sm:!hidden"
+						aria-hidden="true">
+						<svg id="mini-map-svg" class="w-full h-full" xmlns="http://www.w3.org/2000/svg"
+							preserveAspectRatio="xMidYMid meet"></svg>
 					</div>
+				</div>
+				<div class="detail-current flex items-center gap-4 sm:gap-5">
+					<div class="detail-icon-wrap shrink-0 w-[72px] h-[72px]"></div>
 					<div class="flex flex-col gap-1">
 						<span id="detail-temp"
-							class="text-2xl sm:text-4xl font-bold text-gray-900 transition-colors duration-300">—</span>
+								class="text-2xl sm:text-4xl font-bold text-gray-900 dark:text-white transition-colors duration-300">—</span>
 						<span id="detail-desc"
-							class="text-sm sm:text-base text-gray-500 capitalize transition-colors duration-300">—</span>
+								class="text-sm sm:text-base text-gray-500 dark:text-gray-400 capitalize transition-colors duration-300">—</span>
 					</div>
 				</div>
 				<div id="detail-extra" class="grid grid-cols-2 gap-2 sm:gap-2.5 text-sm"></div>
 			</div>
 		</div>
 		<div id="city-about" class="hidden px-6 sm:px-8 pt-4 pb-2">
-			<p id="city-about-text" class="m-0 text-xs sm:text-sm text-gray-500 leading-relaxed"></p>
+			<p id="city-about-text" class="m-0 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed"></p>
 		</div>
 		<div class="flex flex-col gap-6 p-6 sm:p-8">
 			<div id="hourly-chart" class="py-4 hidden" aria-hidden="true"></div>
 			<section class="detail-forecast flex flex-col gap-4">
-				<h3 id="detail-forecast-title" class="m-0 text-sm sm:text-base font-bold text-gray-700"></h3>
+				<h3 id="detail-forecast-title" class="m-0 text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200"></h3>
 				<div id="forecast-list" class="flex flex-col gap-2"></div>
 			</section>
 		</div>
