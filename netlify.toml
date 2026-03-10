@@ -3,4 +3,15 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22"
+
+[dev]
+  command = "npx eleventy --watch"
+  publish = "dist"
+  port = 8888
+  autoLaunch = false
+  framework = "#static"
+
+[functions]
+  directory = "netlify/functions"
+

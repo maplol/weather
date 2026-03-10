@@ -6,11 +6,15 @@
     "type": "git",
     "url": "https://github.com/maplol/netlify-csstricks"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "prestart": "node scripts/gen-ow-config.js",
     "prebuild": "node scripts/gen-ow-config.js",
     "build:css": "postcss src/css/main.css -o src/css/styles.css",
     "start": "npm run build:css && eleventy --serve",
+    "dev": "npm run build:css && netlify dev",
     "build": "npm run build:css && eleventy",
     "serve": "npm run build && npx serve dist -p 3000"
   },

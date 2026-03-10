@@ -11,21 +11,24 @@ exports.handler = async (event) => {
   }
 
   const city = event.queryStringParameters?.city;
+  const lat = event.queryStringParameters?.lat;
+  const lon = event.queryStringParameters?.lon;
   const type = event.queryStringParameters?.type || "current";
   const lang = event.queryStringParameters?.lang || "ru";
 
-  if (!city) {
+  if (!city && (!lat || !lon)) {
     return {
       statusCode: 400,
       headers: CORS,
-      body: JSON.stringify({ error: "Missing city parameter" }),
+      body: JSON.stringify({ error: "Missing city or lat/lon parameters" }),
     };
   }
 
   const base = "https://api.openweathermap.org/data/2.5";
   const path = type === "forecast" ? "forecast" : "weather";
   const forecastParams = type === "forecast" ? "&cnt=40" : "";
-  const url = `${base}/${path}?q=${encodeURIComponent(city)}&APPID=${apiKey}&lang=${lang}${forecastParams}`;
+  const locationParam = city ? `q=${encodeURIComponent(city)}` : `lat=${lat}&lon=${lon}`;
+  const url = `${base}/${path}?${locationParam}&APPID=${apiKey}&units=metric&lang=${lang}${forecastParams}`;
 
   try {
     const res = await fetch(url);

@@ -19,12 +19,42 @@
   stroke-width: 1.5;
   cursor: pointer;
   pointer-events: fill;
-  transition: fill 0.2s, stroke 0.2s, filter 0.2s;
+  transition: fill 0.2s, stroke 0.2s, opacity 0.4s;
 }
-.belarus-svg path.region:hover {
+.belarus-svg path.region:hover,
+.belarus-svg path.region.hover {
   fill: rgba(0, 184, 148, 0.6);
   stroke: rgba(255, 255, 255, 0.9);
-  filter: drop-shadow(0 0 12px rgba(0, 184, 148, 0.5));
+}
+
+.belarus-svg path.city-district {
+  fill: rgba(9, 132, 227, 0.45);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 1.2;
+  cursor: pointer;
+  pointer-events: fill;
+  transition: fill 0.2s, stroke 0.2s, opacity 0.4s;
+}
+.belarus-svg path.city-district:hover,
+.belarus-svg path.city-district.hover {
+  fill: rgba(9, 132, 227, 0.75);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+
+.belarus-svg .city-label {
+  font-size: 4px;
+  font-family: "Manrope", system-ui, sans-serif;
+  font-weight: 700;
+  fill: #fff;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.55);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+  letter-spacing: 0.02em;
 }
 
 /* Skeleton animation */
@@ -61,10 +91,27 @@
   animation: skeleton-shimmer 1.2s infinite;
 }
 
-/* Forecast expand */
-.forecast-item.expanded .forecast-item-details { max-height: 600px; }
-.forecast-item.expanded { box-shadow: 0 4px 20px rgba(0, 184, 148, 0.2); }
+/* Text contrast on photo backgrounds */
+.text-photo-shadow { text-shadow: 0 1px 6px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.4); }
 
-/* Tooltip & loading visibility (JS toggles .visible) */
-#region-tooltip.visible { opacity: 1; transform: translateY(0); }
-#map-loading.visible { opacity: 1; }
+.belarus-svg.map-blur-active path.region,
+.belarus-svg.map-blur-active path.city-district,
+.belarus-svg.map-blur-active .city-label {
+  opacity: 0.15;
+  transition: opacity 0.5s;
+}
+.belarus-svg.map-blur-active .city-label.focused-label {
+  opacity: 1;
+  transition: opacity 0.5s;
+}
+.belarus-svg.map-blur-active path.focused-path {
+  opacity: 1;
+  stroke: rgba(0, 184, 148, 0.8);
+  stroke-width: 1;
+  fill: rgba(0, 184, 148, 0.5);
+  transition: opacity 0.4s, fill 0.3s;
+}
+
+/* Forecast expand (toggled via data-expanded in JS) */
+.forecast-item[data-expanded="true"] .forecast-item-details { max-height: 600px; }
+.forecast-item[data-expanded="true"] { box-shadow: 0 4px 20px rgba(0, 184, 148, 0.2); }
