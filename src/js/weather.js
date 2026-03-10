@@ -726,8 +726,12 @@
     const hintEl = document.getElementById("map-hint");
     let hintHidden = false;
 
+    const focusTransform = document.getElementById("focus-transform-wrap");
+
     function updateTransform() {
-      transformEl.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      const t = `translate(${tx}px, ${ty}px) scale(${scale})`;
+      transformEl.style.transform = t;
+      if (focusTransform) focusTransform.style.transform = t;
       const isZoomed = Math.abs(scale - 1) > 0.05 || Math.abs(tx) > 2 || Math.abs(ty) > 2;
       if (resetBtn) resetBtn.classList.toggle("hidden", !isZoomed);
       if (resetBtn) resetBtn.classList.toggle("flex", isZoomed);
@@ -983,6 +987,7 @@
               label.setAttribute("x", cx.toFixed(1));
               label.setAttribute("y", cy.toFixed(1));
               label.setAttribute("class", "city-label");
+              label.setAttribute("data-city-id", pathEl.getAttribute("data-city-id"));
               label.textContent = cityName;
               citiesLayer.appendChild(label);
               const actualW = label.getComputedTextLength?.() || cityName.length * baseFontSize * 0.55;
@@ -1074,6 +1079,10 @@
           return [elX, elY, svgScale];
         }
 
+        const focusOverlay = document.getElementById("map-focus-overlay");
+        const focusSvgWrap = document.getElementById("focus-svg-wrap");
+        const focusSvg = document.getElementById("focus-svg");
+
         function zoomToPath(targetPath) {
           const svg = document.getElementById("belarus-svg");
           if (!svg || !targetPath) return;
@@ -1081,26 +1090,106 @@
           const svgCx = bb.x + bb.width / 2;
           const svgCy = bb.y + bb.height / 2;
           const [elX, elY, svgScale] = svgToEl(svgCx, svgCy);
-          const sizeInPx = Math.max(bb.width, bb.height) * svgScale;
-          const targetZoom = Math.min(6, Math.max(2.5, 280 / sizeInPx));
+
+          const wrapRect = wrap.getBoundingClientRect();
+          const panelW = Math.min(420, wrapRect.width * 0.42);
+          const availW = wrapRect.width - panelW;
+          const availH = wrapRect.height;
+          const cityW = bb.width * svgScale;
+          const cityH = bb.height * svgScale;
+          const isReg = targetPath.classList.contains("region");
+          const pad = isReg ? 1.15 : 1.4;
+          const fitZoom = Math.min(availW / (cityW * pad), availH / (cityH * pad));
+          const targetZoom = Math.min(8, Math.max(isReg ? 1.5 : 2.5, fitZoom));
           zoomCtrl.focusOnPoint(elX, elY, targetZoom);
 
-          svg.classList.add("map-blur-active");
-          targetPath.classList.add("focused-path");
-          const cityName = targetPath.getAttribute("data-city-name") || targetPath.getAttribute("data-region-name");
-          if (cityName) {
-            citiesLayer.querySelectorAll(".city-label").forEach((lbl) => {
-              if (lbl.textContent === cityName) lbl.classList.add("focused-label");
-            });
+          if (focusOverlay) {
+            focusOverlay.style.opacity = "1";
+          }
+
+          if (focusSvg && focusSvgWrap) {
+            focusSvg.innerHTML = "";
+
+            const ns = "http://www.w3.org/2000/svg";
+            const gradId = "focus-grad";
+            const defs = document.createElementNS(ns, "defs");
+
+            const grad = document.createElementNS(ns, "linearGradient");
+            grad.setAttribute("id", gradId);
+            grad.setAttribute("x1", "0%"); grad.setAttribute("y1", "0%");
+            grad.setAttribute("x2", "100%"); grad.setAttribute("y2", "100%");
+            const stops = [
+              ["0%", "#0d9488", "1"],
+              ["50%", "#14b8a6", "0.95"],
+              ["100%", "#06b6d4", "0.9"],
+            ];
+            for (const [off, color, op] of stops) {
+              const s = document.createElementNS(ns, "stop");
+              s.setAttribute("offset", off);
+              s.setAttribute("stop-color", color);
+              s.setAttribute("stop-opacity", op);
+              grad.appendChild(s);
+            }
+            defs.appendChild(grad);
+            focusSvg.appendChild(defs);
+
+            const isRegion = targetPath.classList.contains("region");
+
+            const clone = targetPath.cloneNode(true);
+            clone.removeAttribute("class");
+            clone.setAttribute("fill", `url(#${gradId})`);
+            clone.setAttribute("stroke", "#5eead4");
+            clone.setAttribute("stroke-width", "0.6");
+            focusSvg.appendChild(clone);
+
+            if (isRegion) {
+              const regionId = targetPath.getAttribute("data-region-id");
+              const innerCities = document.querySelectorAll(`#cities-layer path.city-district[data-region-id="${regionId}"]`);
+              for (const cp of innerCities) {
+                const hole = cp.cloneNode(true);
+                hole.removeAttribute("class");
+                hole.setAttribute("fill", `url(#${gradId})`);
+                hole.setAttribute("stroke", "none");
+                focusSvg.appendChild(hole);
+              }
+            }
+            const cityName = isRegion
+              ? (targetPath.getAttribute("data-region-name") || "")
+              : (targetPath.getAttribute("data-city-name") || "");
+            if (cityName) {
+              const cx = bb.x + bb.width / 2;
+              const cy = bb.y + bb.height / 2;
+              const fontSize = Math.min(bb.height * 0.22, bb.width * 0.12, 5.5);
+              const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              lbl.setAttribute("x", cx.toFixed(1));
+              lbl.setAttribute("y", cy.toFixed(1));
+              lbl.setAttribute("class", "city-label");
+              lbl.setAttribute("fill", "#fff");
+              lbl.setAttribute("stroke", "rgba(0,0,0,0.55)");
+              lbl.setAttribute("stroke-width", "1");
+              lbl.setAttribute("paint-order", "stroke fill");
+              lbl.setAttribute("stroke-linejoin", "round");
+              lbl.setAttribute("text-anchor", "middle");
+              lbl.setAttribute("dominant-baseline", "central");
+              lbl.setAttribute("font-family", "Manrope, system-ui, sans-serif");
+              lbl.setAttribute("font-weight", "700");
+              lbl.setAttribute("letter-spacing", "0.02em");
+              lbl.style.fontSize = Math.max(2.5, fontSize).toFixed(2) + "px";
+              lbl.textContent = cityName;
+              focusSvg.appendChild(lbl);
+            }
+
+            focusSvgWrap.style.opacity = "1";
           }
         }
 
         function clearMapFocus() {
-          const svg = document.getElementById("belarus-svg");
-          if (svg) {
-            svg.classList.remove("map-blur-active");
-            svg.querySelectorAll(".focused-path").forEach((el) => el.classList.remove("focused-path"));
-            svg.querySelectorAll(".focused-label").forEach((el) => el.classList.remove("focused-label"));
+          if (focusOverlay) {
+            focusOverlay.style.opacity = "0";
+          }
+          if (focusSvg && focusSvgWrap) {
+            focusSvgWrap.style.opacity = "0";
+            setTimeout(() => { focusSvg.innerHTML = ""; }, 400);
           }
           zoomCtrl.unfocus();
         }

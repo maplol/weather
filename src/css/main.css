@@ -42,7 +42,8 @@
   stroke-width: 1.5;
 }
 
-.belarus-svg .city-label {
+.belarus-svg .city-label,
+#focus-svg .city-label {
   font-size: 4px;
   font-family: "Manrope", system-ui, sans-serif;
   font-weight: 700;
@@ -94,23 +95,6 @@
 /* Text contrast on photo backgrounds */
 .text-photo-shadow { text-shadow: 0 1px 6px rgba(0,0,0,.7), 0 0 2px rgba(0,0,0,.4); }
 
-.belarus-svg.map-blur-active path.region,
-.belarus-svg.map-blur-active path.city-district,
-.belarus-svg.map-blur-active .city-label {
-  opacity: 0.15;
-  transition: opacity 0.5s;
-}
-.belarus-svg.map-blur-active .city-label.focused-label {
-  opacity: 1;
-  transition: opacity 0.5s;
-}
-.belarus-svg.map-blur-active path.focused-path {
-  opacity: 1;
-  stroke: rgba(0, 184, 148, 0.8);
-  stroke-width: 1;
-  fill: rgba(0, 184, 148, 0.5);
-  transition: opacity 0.4s, fill 0.3s;
-}
 
 /* Forecast expand (toggled via data-expanded in JS) */
 .forecast-item[data-expanded="true"] .forecast-item-details { max-height: 600px; }

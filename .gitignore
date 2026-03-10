@@ -4,7 +4,6 @@ dist/
 .env.local
 src/js/ow-config.js
 src/css/styles.css
-src/photos/
 
 # Local Netlify folder
 .netlify
