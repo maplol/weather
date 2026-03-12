@@ -670,15 +670,17 @@
       }
     }
 
-    if (_zoomCtrl) _zoomCtrl.resetView();
-    requestAnimationFrame(() => {
-      const [cx, cy] = lngLatToSvg(item.lon, item.lat);
-      if (_zoomCtrl) {
-        const [elX, elY] = svgToElGlobal(cx, cy);
-        _zoomCtrl.focusOnPoint(elX, elY, 4);
-      }
-    });
     fillPlacePanel(item);
+    if (_zoomCtrl) {
+      _zoomCtrl.resetView();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const [cx, cy] = lngLatToSvg(item.lon, item.lat);
+          const [elX, elY] = svgToElGlobal(cx, cy);
+          _zoomCtrl.focusOnPoint(elX, elY, 4);
+        });
+      });
+    }
   }
 
   function svgToElGlobal(svgX, svgY) {
@@ -855,12 +857,12 @@
   }
 
   function _segmentHTML(fromName, toName, km) {
-    const from = encodeURIComponent(fromName);
-    const to = encodeURIComponent(toName);
+    const from = encodeURIComponent(fromName + ", Беларусь");
+    const to = encodeURIComponent(toName + ", Беларусь");
     return `<div class="flex items-center gap-1.5 py-1 px-2 text-[0.6rem] text-gray-400 dark:text-gray-500">
-      <svg class="w-3 h-3 shrink-0 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <svg class="w-3 h-3 shrink-0 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
       <span>${_fmtDist(km)}</span>
-      <a href="https://atlasbus.by/%D0%9C%D0%B0%D1%80%D1%88%D1%80%D1%83%D1%82%D1%8B/${from}/${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">расписание</a>
+      <a href="https://www.google.com/maps/dir/${from}/${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">маршрут</a>
     </div>`;
   }
 

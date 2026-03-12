@@ -119,11 +119,17 @@ window.wbApp = {
     const today = new Date().toISOString().slice(0, 10);
     if (_data.visited[cityId]) {
       delete _data.visited[cityId];
+      await idbSet(_data);
+      if (_user) {
+        await setDoc(doc(db, "users", _user.uid), {
+          visited: { [cityId]: deleteField() }
+        }, { merge: true });
+      }
     } else {
       _data.visited[cityId] = { count: 1, firstVisit: today, lastVisit: today };
+      await idbSet(_data);
+      if (_user) await saveToFirestore(_user.uid, _data);
     }
-    await idbSet(_data);
-    if (_user) await saveToFirestore(_user.uid, _data);
     notify();
   },
 
