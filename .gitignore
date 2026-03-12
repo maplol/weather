@@ -3,6 +3,7 @@ dist/
 .env
 .env.local
 src/js/ow-config.js
+src/js/fb-config.js
 src/css/styles.css
 
 # Local Netlify folder

@@ -63,6 +63,9 @@
     return el.innerHTML;
   }
 
+  let _currentCityId = null;
+  let _currentCitySecret = null;
+
   let _photosIndex = null;
   const PHOTOS_PER_DAY = 5;
 
@@ -432,6 +435,656 @@
     return cachedFetch(`forecast:${region?.id ?? region?.apiName}`, () => _fetchForecast10d(region));
   }
 
+  function getAllCities() {
+    const all = [];
+    for (const region of (countries[currentCountry]?.regions || [])) {
+      for (const city of (region.cities || [])) all.push(city);
+    }
+    return all;
+  }
+
+  function getPlaces() {
+    return countries[currentCountry]?.places || [];
+  }
+
+  function updateVisitedUI() {
+    const section = document.getElementById("visited-section");
+    const btn = document.getElementById("visited-btn");
+    const unvisitBtn = document.getElementById("unvisit-btn");
+    const secretWrap = document.getElementById("secret-fact");
+    const secretText = document.getElementById("secret-fact-text");
+    if (!section || !btn) return;
+
+    if (!_currentCityId) {
+      section.classList.add("hidden");
+      secretWrap?.classList.add("hidden");
+      return;
+    }
+
+    section.classList.remove("hidden");
+    const app = window.wbApp;
+    const visited = app?.isVisited(_currentCityId);
+    const count = app?.getVisitedCount(_currentCityId) || 0;
+
+    if (visited) {
+      btn.className = "flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-white/10";
+      btn.innerHTML = `
+        <svg class="w-4 h-4 text-teal-500" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        <span>Посещено${count > 1 ? " (" + count + ")" : ""}</span>
+      `;
+      unvisitBtn?.classList.remove("hidden");
+      unvisitBtn?.classList.add("flex");
+      if (_currentCitySecret && secretWrap && secretText) {
+        secretText.textContent = _currentCitySecret;
+        secretWrap.classList.remove("hidden");
+      }
+    } else {
+      btn.className = "flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] bg-teal-500 hover:bg-teal-600 text-white shadow-md shadow-teal-500/20";
+      btn.innerHTML = `
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        <span>Я тут был</span>
+      `;
+      unvisitBtn?.classList.add("hidden");
+      unvisitBtn?.classList.remove("flex");
+      secretWrap?.classList.add("hidden");
+    }
+  }
+
+  function lngLatToSvg(lng, lat) {
+    const x = PADDING + ((lng - BY_BOUNDS.minLng) / (BY_BOUNDS.maxLng - BY_BOUNDS.minLng)) * (SVG_WIDTH - PADDING * 2);
+    const y = PADDING + ((BY_BOUNDS.maxLat - lat) / (BY_BOUNDS.maxLat - BY_BOUNDS.minLat)) * (SVG_HEIGHT - PADDING * 2);
+    return [x, y];
+  }
+
+  function renderPOIMarkers() {
+    const g = document.getElementById("poi-markers");
+    if (!g) return;
+    g.innerHTML = "";
+    const places = getPlaces();
+    for (const p of places) {
+      const [cx, cy] = lngLatToSvg(p.lon, p.lat);
+      const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      marker.setAttribute("class", "poi-marker");
+      marker.setAttribute("data-place-id", p.id);
+      marker.innerHTML = `
+        <circle cx="${cx}" cy="${cy}" r="3.5" fill="#8b5cf6" stroke="#fff" stroke-width="0.8" opacity="0.7"/>
+        <text x="${cx}" y="${cy - 5}" text-anchor="middle" fill="#6d28d9" font-size="2.8" font-weight="600" stroke="#fff" stroke-width="0.3" paint-order="stroke" pointer-events="none">${esc(p.name)}</text>
+      `;
+      g.appendChild(marker);
+    }
+  }
+
+  function renderVisitedMarkers() {
+    const g = document.getElementById("visited-markers");
+    if (!g) return;
+    g.innerHTML = "";
+    const app = window.wbApp;
+    if (!app) return;
+    const data = app.getData();
+    const visited = data?.visited || {};
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const lookup = [...allCities, ...allPlaces];
+
+    for (const [cityId, info] of Object.entries(visited)) {
+      const item = lookup.find((c) => c.id === cityId);
+      if (!item) continue;
+      const [cx, cy] = lngLatToSvg(item.lon, item.lat);
+      const count = info.count || 1;
+      const isPlace = allPlaces.some((p) => p.id === cityId);
+      const r = count > 1 ? 5 : 4;
+      const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      circle.setAttribute("cx", cx);
+      circle.setAttribute("cy", cy);
+      circle.setAttribute("r", r);
+      circle.setAttribute("fill", isPlace ? "#8b5cf6" : "#f59e0b");
+      circle.setAttribute("stroke", "#fff");
+      circle.setAttribute("stroke-width", "1.2");
+      circle.setAttribute("opacity", "0.9");
+      circle.classList.add("visited-pin");
+      g.appendChild(circle);
+
+      if (count > 1) {
+        const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        txt.setAttribute("x", cx);
+        txt.setAttribute("y", cy);
+        txt.setAttribute("text-anchor", "middle");
+        txt.setAttribute("dominant-baseline", "central");
+        txt.setAttribute("fill", "#fff");
+        txt.setAttribute("font-size", "4");
+        txt.setAttribute("font-weight", "700");
+        txt.setAttribute("pointer-events", "none");
+        txt.textContent = count;
+        g.appendChild(txt);
+      }
+    }
+  }
+
+  function fillPlacePanel(place) {
+    openPanel();
+    hideSkeletons();
+    _currentCityId = place.id;
+    _currentCitySecret = place.secret || null;
+
+    const cityEl = document.getElementById("detail-city");
+    if (cityEl) cityEl.textContent = place.name;
+
+    showPhotoSlider([]);
+    _applyPhotoTheme("fallback");
+
+    const iconWrap = document.querySelector(".detail-icon-wrap");
+    if (iconWrap) iconWrap.innerHTML = "";
+    const tempEl = document.getElementById("detail-temp");
+    if (tempEl) tempEl.textContent = "";
+    const descEl = document.getElementById("detail-desc");
+    if (descEl) descEl.textContent = place.desc || "";
+
+    const extra = document.getElementById("detail-extra");
+    if (extra) extra.innerHTML = "";
+
+    const aboutWrap = document.getElementById("city-about");
+    if (aboutWrap) aboutWrap.classList.add("hidden");
+
+    const hourly = document.getElementById("hourly-chart");
+    if (hourly) { hourly.innerHTML = ""; hourly.classList.add("hidden"); hourly.setAttribute("aria-hidden", "true"); }
+
+    const ft = document.getElementById("detail-forecast-title");
+    if (ft) ft.textContent = "";
+    const list = document.getElementById("forecast-list");
+    if (list) list.innerHTML = "";
+
+    updateVisitedUI();
+  }
+
+  let _currentRoute = null;
+  let _routeRoundTrip = false;
+
+  function renderRouteLine() {
+    const g = document.getElementById("route-line-layer");
+    if (!g) return;
+    g.innerHTML = "";
+    if (!_currentRoute || _currentRoute.length < 2) return;
+
+    const app = window.wbApp;
+    const home = app?.getHome();
+    const startLat = home?.lat ?? 53.9;
+    const startLon = home?.lon ?? 27.56;
+
+    const points = [[startLon, startLat], ..._currentRoute.map((c) => [c.lon, c.lat])];
+    if (_routeRoundTrip) points.push([startLon, startLat]);
+    const svgPoints = points.map(([lon, lat]) => lngLatToSvg(lon, lat));
+
+    const d = svgPoints.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(" ");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#3b82f6");
+    path.setAttribute("stroke-width", "1.5");
+    path.setAttribute("stroke-dasharray", "4 2");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("opacity", "0.7");
+    path.classList.add("route-path");
+    g.appendChild(path);
+
+    svgPoints.forEach((p, i) => {
+      if (i === 0) return;
+      if (_routeRoundTrip && i === svgPoints.length - 1) return;
+      const num = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      num.innerHTML = `
+        <circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#3b82f6" stroke="#fff" stroke-width="0.8"/>
+        <text x="${p[0]}" y="${p[1]}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="3.5" font-weight="700" pointer-events="none">${i}</text>
+      `;
+      g.appendChild(num);
+    });
+  }
+
+  function focusOnPlace(placeId) {
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const item = [...allCities, ...allPlaces].find((c) => c.id === placeId);
+    if (!item) return;
+
+    closeProfile();
+    if (_zoomCtrl) _zoomCtrl.resetView();
+
+    const city = allCities.find((c) => c.id === placeId);
+    if (city) {
+      const regions = countries[currentCountry]?.regions || [];
+      for (const region of regions) {
+        if (region.cities?.some((c) => c.id === placeId)) {
+          requestAnimationFrame(() => {
+            const pathEl = document.querySelector(`path.city-district[data-city-id="${placeId}"]`);
+            if (pathEl && _zoomCtrl) {
+              const [elX, elY] = svgToElGlobal(pathEl.getBBox().x + pathEl.getBBox().width / 2, pathEl.getBBox().y + pathEl.getBBox().height / 2);
+              _zoomCtrl.focusOnPoint(elX, elY, 3);
+            }
+          });
+          onCityClick(city, region.id);
+          return;
+        }
+      }
+    }
+
+    requestAnimationFrame(() => {
+      const [cx, cy] = lngLatToSvg(item.lon, item.lat);
+      if (_zoomCtrl) {
+        const [elX, elY] = svgToElGlobal(cx, cy);
+        _zoomCtrl.focusOnPoint(elX, elY, 4);
+      }
+    });
+    fillPlacePanel(item);
+  }
+
+  function svgToElGlobal(svgX, svgY) {
+    const svg = document.getElementById("belarus-svg");
+    const wrap = document.getElementById("svg-wrap");
+    if (!svg || !wrap) return [0, 0];
+    const vb = svg.viewBox.baseVal;
+    const svgRect = svg.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    const scaleX = svgRect.width / vb.width;
+    const px = svgRect.left + (svgX - vb.x) * scaleX - wrapRect.left - wrapRect.width / 2;
+    const py = svgRect.top + (svgY - vb.y) * scaleX - wrapRect.top - wrapRect.height / 2;
+    return [px, py];
+  }
+
+  function renderHomeMarker() {
+    const g = document.getElementById("home-marker");
+    if (!g) return;
+    g.innerHTML = "";
+    const app = window.wbApp;
+    const home = app?.getHome();
+    if (!home) return;
+    const [cx, cy] = lngLatToSvg(home.lon, home.lat);
+    const pin = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    pin.innerHTML = `
+      <circle cx="${cx}" cy="${cy}" r="5" fill="#3b82f6" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+      <circle cx="${cx}" cy="${cy}" r="2" fill="#fff"/>
+    `;
+    g.appendChild(pin);
+  }
+
+  function openProfile() {
+    const panel = document.getElementById("profile-panel");
+    const overlay = document.getElementById("profile-overlay");
+    panel?.setAttribute("data-visible", "true");
+    panel?.setAttribute("aria-hidden", "false");
+    overlay?.setAttribute("data-visible", "true");
+    overlay?.setAttribute("aria-hidden", "false");
+    fillProfile();
+  }
+
+  function closeProfile() {
+    const panel = document.getElementById("profile-panel");
+    const overlay = document.getElementById("profile-overlay");
+    panel?.setAttribute("data-visible", "false");
+    panel?.setAttribute("aria-hidden", "true");
+    overlay?.setAttribute("data-visible", "false");
+    overlay?.setAttribute("aria-hidden", "true");
+  }
+
+  function fillProfile() {
+    const app = window.wbApp;
+    if (!app) return;
+    const user = app.getUser();
+    const data = app.getData();
+    const visited = data?.visited || {};
+
+    if (user) {
+      const photo = document.getElementById("profile-photo");
+      const name = document.getElementById("profile-name");
+      const email = document.getElementById("profile-email");
+      if (photo) photo.src = user.photoURL || "";
+      if (name) name.textContent = user.displayName || "Путешественник";
+      if (email) email.textContent = user.email || "";
+    }
+
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const lookup = [...allCities, ...allPlaces];
+    const visitedIds = Object.keys(visited);
+    const totalItems = allCities.length + allPlaces.length;
+
+    document.getElementById("stat-visited").textContent = visitedIds.length;
+    document.getElementById("stat-total").textContent = totalItems;
+
+    const list = document.getElementById("profile-visited-list");
+    const empty = document.getElementById("profile-empty");
+    if (!list) return;
+
+    if (visitedIds.length === 0) {
+      list.innerHTML = "";
+      empty?.classList.remove("hidden");
+      return;
+    }
+    empty?.classList.add("hidden");
+
+    list.innerHTML = visitedIds.map((id) => {
+      const item = lookup.find((c) => c.id === id);
+      const info = visited[id];
+      const name = item?.name || id;
+      const count = info?.count || 1;
+      const date = info?.lastVisit || "";
+      const isPlace = allPlaces.some((p) => p.id === id);
+      return `
+        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group">
+          <div class="w-3 h-3 rounded-full shrink-0 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
+          <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">${esc(name)}</span>
+            <span class="text-[0.65rem] text-gray-400">${count > 1 ? count + " раз" : "1 раз"}${date ? " · " + date : ""}</span>
+          </div>
+          <button class="profile-remove-btn opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" title="Убрать">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>`;
+    }).join("");
+
+    list.querySelectorAll(".profile-remove-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const cityId = btn.getAttribute("data-city-id");
+        if (!cityId) return;
+        await app.toggleVisited(cityId);
+        renderVisitedMarkers();
+        updateVisitedUI();
+        fillProfile();
+      });
+    });
+  }
+
+  async function buildRoute() {
+    const app = window.wbApp;
+    if (!app) return;
+    const data = app.getData();
+    const visited = data?.visited || {};
+    const home = app.getHome();
+
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const lookup = [...allCities, ...allPlaces];
+
+    const unvisited = lookup.filter((c) => !visited[c.id]);
+    if (unvisited.length === 0) {
+      document.getElementById("route-result").innerHTML = `<p class="text-xs text-gray-500 dark:text-gray-400 italic">Вы посетили все места!</p>`;
+      document.getElementById("route-result").classList.remove("hidden");
+      return;
+    }
+
+    const startLat = home?.lat ?? 53.9;
+    const startLon = home?.lon ?? 27.56;
+
+    const remaining = [...unvisited];
+    const route = [];
+    let curLat = startLat;
+    let curLon = startLon;
+
+    while (remaining.length > 0 && route.length < 10) {
+      let minDist = Infinity;
+      let nearest = 0;
+      for (let i = 0; i < remaining.length; i++) {
+        const d = Math.hypot(remaining[i].lat - curLat, remaining[i].lon - curLon);
+        if (d < minDist) { minDist = d; nearest = i; }
+      }
+      const city = remaining.splice(nearest, 1)[0];
+      route.push(city);
+      curLat = city.lat;
+      curLon = city.lon;
+    }
+
+    _currentRoute = route;
+    await app.saveRoute(route.map((c) => c.id));
+    renderRouteLine();
+    renderRouteUI(route, startLat, startLon, allPlaces);
+
+    const cancelBtn = document.getElementById("cancel-route-btn");
+    cancelBtn?.classList.remove("hidden");
+    cancelBtn?.classList.add("flex");
+  }
+
+  function _fmtDist(km) {
+    const h = Math.floor(km / 70);
+    const m = Math.round((km % 70) / 70 * 60);
+    if (h === 0) return `~${Math.round(km)} км · ~${m} мин`;
+    return `~${Math.round(km)} км · ~${h}ч ${m}мин`;
+  }
+
+  function _segmentHTML(fromName, toName, km) {
+    const from = encodeURIComponent(fromName);
+    const to = encodeURIComponent(toName);
+    return `<div class="flex items-center gap-1.5 py-1 px-2 text-[0.6rem] text-gray-400 dark:text-gray-500">
+      <svg class="w-3 h-3 shrink-0 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <span>${_fmtDist(km)}</span>
+      <a href="https://rasp.by/search/?from=${from}&to=${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">расписание</a>
+    </div>`;
+  }
+
+  function renderRouteUI(route, startLat, startLon, allPlaces) {
+    const resultEl = document.getElementById("route-result");
+    if (!resultEl) return;
+    resultEl.classList.remove("hidden");
+
+    let totalDist = route.reduce((sum, c, i) => {
+      const prevLat = i === 0 ? startLat : route[i - 1].lat;
+      const prevLon = i === 0 ? startLon : route[i - 1].lon;
+      return sum + haversine(prevLat, prevLon, c.lat, c.lon);
+    }, 0);
+
+    if (_routeRoundTrip && route.length > 0) {
+      const last = route[route.length - 1];
+      totalDist += haversine(last.lat, last.lon, startLat, startLon);
+    }
+
+    const homeName = "Дом";
+    let html = `<div class="flex items-center gap-2 mb-2">
+      <span class="text-xs text-gray-500 dark:text-gray-400">${route.length} мест · ~${Math.round(totalDist)} км${_routeRoundTrip ? " (туда-обратно)" : ""}</span>
+    </div><div class="flex flex-col">`;
+
+    route.forEach((c, i) => {
+      const prevLat = i === 0 ? startLat : route[i - 1].lat;
+      const prevLon = i === 0 ? startLon : route[i - 1].lon;
+      const prevName = i === 0 ? homeName : route[i - 1].name;
+      const segKm = haversine(prevLat, prevLon, c.lat, c.lon);
+      html += _segmentHTML(prevName, c.name, segKm);
+
+      const isPlace = allPlaces.some((p) => p.id === c.id);
+      const desc = c.desc || c.about || "";
+      html += `<div class="route-item flex items-start gap-2.5 p-2 rounded-lg bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" data-place-id="${esc(c.id)}">
+        <div class="flex flex-col items-center gap-0.5 pt-0.5">
+          <span class="text-[0.6rem] font-bold text-blue-500">${i + 1}</span>
+          ${i < route.length - 1 || _routeRoundTrip ? '<div class="w-px h-3 bg-blue-300 dark:bg-blue-600"></div>' : ""}
+        </div>
+        <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+          <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${esc(c.name)}</span>
+          ${desc ? `<span class="text-[0.6rem] text-gray-400 leading-tight">${esc(desc.slice(0, 80))}${desc.length > 80 ? "…" : ""}</span>` : ""}
+        </div>
+        <div class="w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
+      </div>`;
+    });
+
+    if (_routeRoundTrip && route.length > 0) {
+      const last = route[route.length - 1];
+      const retKm = haversine(last.lat, last.lon, startLat, startLon);
+      html += _segmentHTML(last.name, homeName, retKm);
+      html += `<div class="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10">
+        <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/></svg>
+        <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">Возвращение домой</span>
+      </div>`;
+    }
+
+    html += "</div>";
+    resultEl.innerHTML = html;
+
+    resultEl.querySelectorAll(".route-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-place-id");
+        if (id) focusOnPlace(id);
+      });
+    });
+  }
+
+  async function cancelRoute() {
+    const app = window.wbApp;
+    if (app) await app.clearRoute();
+    _currentRoute = null;
+    renderRouteLine();
+    const resultEl = document.getElementById("route-result");
+    if (resultEl) { resultEl.innerHTML = ""; resultEl.classList.add("hidden"); }
+    const cancelBtn = document.getElementById("cancel-route-btn");
+    cancelBtn?.classList.add("hidden");
+    cancelBtn?.classList.remove("flex");
+  }
+
+  function restoreSavedRoute() {
+    const app = window.wbApp;
+    if (!app) return;
+    const routeIds = app.getRoute();
+    if (!routeIds || !routeIds.length) return;
+
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const lookup = [...allCities, ...allPlaces];
+    const route = routeIds.map((id) => lookup.find((c) => c.id === id)).filter(Boolean);
+    if (!route.length) return;
+
+    _currentRoute = route;
+    renderRouteLine();
+
+    const home = app.getHome();
+    renderRouteUI(route, home?.lat ?? 53.9, home?.lon ?? 27.56, allPlaces);
+
+    const cancelBtn = document.getElementById("cancel-route-btn");
+    cancelBtn?.classList.remove("hidden");
+    cancelBtn?.classList.add("flex");
+  }
+
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function setupAuthUI() {
+    const authWrap = document.getElementById("auth-wrap");
+    const authBtn = document.getElementById("auth-btn");
+    const authLabel = document.getElementById("auth-label");
+    const authAvatar = document.getElementById("auth-avatar");
+    if (!authBtn || !authWrap) return;
+
+    const app = window.wbApp;
+    if (!app) {
+      authWrap.classList.add("hidden");
+      return;
+    }
+
+    let firstCall = true;
+    app.onStateChange((user, data) => {
+      if (user) {
+        authBtn.classList.add("hidden");
+        authBtn.classList.remove("flex");
+        authAvatar.src = user.photoURL || "";
+        authAvatar.classList.remove("hidden");
+      } else {
+        authBtn.classList.remove("hidden");
+        authBtn.classList.add("flex");
+        authAvatar.classList.add("hidden");
+      }
+      if (firstCall) {
+        requestAnimationFrame(() => authWrap.style.opacity = "1");
+        firstCall = false;
+      }
+      renderVisitedMarkers();
+      renderHomeMarker();
+      updateVisitedUI();
+      restoreSavedRoute();
+    });
+
+    authBtn.addEventListener("click", () => app.signIn());
+    authAvatar.addEventListener("click", () => openProfile());
+  }
+
+  function setupVisitedBtn() {
+    const btn = document.getElementById("visited-btn");
+    const unvisitBtn = document.getElementById("unvisit-btn");
+    if (!btn) return;
+
+    btn.addEventListener("click", async () => {
+      if (!_currentCityId) return;
+      const app = window.wbApp;
+      if (!app) return;
+      if (app.isVisited(_currentCityId)) {
+        await app.incrementVisited(_currentCityId);
+      } else {
+        await app.toggleVisited(_currentCityId);
+      }
+      updateVisitedUI();
+      renderVisitedMarkers();
+    });
+
+    unvisitBtn?.addEventListener("click", async () => {
+      if (!_currentCityId) return;
+      const app = window.wbApp;
+      if (!app || !app.isVisited(_currentCityId)) return;
+      await app.toggleVisited(_currentCityId);
+      updateVisitedUI();
+      renderVisitedMarkers();
+    });
+  }
+
+  function setupProfile() {
+    document.getElementById("profile-close")?.addEventListener("click", closeProfile);
+    document.getElementById("profile-overlay")?.addEventListener("click", closeProfile);
+    document.getElementById("profile-logout")?.addEventListener("click", async () => {
+      const app = window.wbApp;
+      if (app) await app.signOut();
+      closeProfile();
+    });
+    document.getElementById("build-route-btn")?.addEventListener("click", buildRoute);
+    document.getElementById("cancel-route-btn")?.addEventListener("click", cancelRoute);
+
+    document.querySelectorAll("#route-type-toggle button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const type = btn.getAttribute("data-route-type");
+        _routeRoundTrip = type === "round";
+        document.querySelectorAll("#route-type-toggle button").forEach((b) => {
+          const active = b.getAttribute("data-route-type") === type;
+          b.classList.toggle("bg-blue-500", active);
+          b.classList.toggle("text-white", active);
+          b.classList.toggle("bg-gray-100", !active);
+          b.classList.toggle("dark:bg-gray-700", !active);
+          b.classList.toggle("text-gray-600", !active);
+          b.classList.toggle("dark:text-gray-300", !active);
+        });
+        if (_currentRoute) {
+          const app = window.wbApp;
+          const home = app?.getHome();
+          renderRouteLine();
+          renderRouteUI(_currentRoute, home?.lat ?? 53.9, home?.lon ?? 27.56, getPlaces());
+        }
+      });
+    });
+  }
+
+  async function setupGeolocation() {
+    const app = window.wbApp;
+    if (!app || app.getHome()) return;
+    const pos = await app.requestGeolocation();
+    if (!pos) return;
+    const { lat, lon } = pos;
+    if (lat < BY_BOUNDS.minLat || lat > BY_BOUNDS.maxLat || lon < BY_BOUNDS.minLng || lon > BY_BOUNDS.maxLng) return;
+    const allCities = getAllCities();
+    let closest = null;
+    let minDist = Infinity;
+    for (const city of allCities) {
+      const d = Math.hypot(city.lat - lat, city.lon - lon);
+      if (d < minDist) { minDist = d; closest = city; }
+    }
+    const name = closest ? closest.name : "Дом";
+    await app.setHome(lat, lon, name);
+    renderHomeMarker();
+  }
+
   let _lastFocused = null;
   let _zoomCtrl = null;
   let _clearMapFocus = null;
@@ -459,6 +1112,10 @@
     showPhotoSlider([]);
     _applyPhotoTheme("none");
     document.getElementById("city-about")?.classList.add("hidden");
+    document.getElementById("visited-section")?.classList.add("hidden");
+    document.getElementById("secret-fact")?.classList.add("hidden");
+    _currentCityId = null;
+    _currentCitySecret = null;
     if (_clearMapFocus) _clearMapFocus();
     if (_lastFocused && typeof _lastFocused.focus === "function") {
       _lastFocused.focus();
@@ -522,8 +1179,10 @@
     }
   }
 
-  function fillPanel(current, forecast, displayName, regionId, aboutText) {
+  function fillPanel(current, forecast, displayName, regionId, aboutText, cityId, secretText) {
     hideSkeletons();
+    _currentCityId = cityId || null;
+    _currentCitySecret = secretText || null;
     const cur = parseCurrent(current);
     const set = (id, v) => document.getElementById(id) && (document.getElementById(id).textContent = v);
     set("detail-city", displayName);
@@ -538,6 +1197,7 @@
         aboutWrap.classList.add("hidden");
       }
     }
+    updateVisitedUI();
     set("detail-temp", cur.temp != null ? cur.temp + "°" : "—");
     set("detail-desc", cur.desc);
     const iconWrap = document.querySelector(".detail-icon-wrap");
@@ -710,7 +1370,7 @@
         fetchCurrent(apiName),
         fetchForecast(region),
       ]);
-      fillPanel(current, forecast, displayName, region.id, null);
+      fillPanel(current, forecast, displayName, region.id, null, region.id, null);
     } catch (err) {
       _showError(displayName, err);
     }
@@ -728,7 +1388,7 @@
         fetchCurrentCoords(city.lat, city.lon),
         fetchForecast(city),
       ]);
-      fillPanel(current, forecast, displayName, regionId, city.about);
+      fillPanel(current, forecast, displayName, regionId, city.about, city.id, city.secret);
     } catch (err) {
       _showError(displayName, err);
     }
@@ -1069,6 +1729,8 @@
           });
         }
 
+        renderPOIMarkers();
+
         function findTarget(x, y) {
           const els = document.elementsFromPoint(x, y);
           for (const el of els) {
@@ -1323,6 +1985,11 @@
       if (e.key === "Escape") closePanel();
       if (e.key === "Tab") trapFocus(e);
     });
+
+    setupAuthUI();
+    setupVisitedBtn();
+    setupProfile();
+    setTimeout(setupGeolocation, 2000);
   }
 
   if (document.readyState === "loading") {
