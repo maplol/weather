@@ -31,6 +31,13 @@
   const SVG_HEIGHT = 320;
   const PADDING = 8;
 
+  const TAG_LABELS = {
+    history: "История", architecture: "Архитектура", nature: "Природа",
+    museums: "Музеи", religion: "Храмы и соборы", military: "Военная история",
+    crafts: "Ремёсла и промыслы", unesco: "UNESCO",
+  };
+  const ALL_TAGS = Object.keys(TAG_LABELS);
+
   const CACHE_TTL = 5 * 60 * 1000;
   const weatherCache = new Map();
 
@@ -501,16 +508,26 @@
     if (!g) return;
     g.innerHTML = "";
     const places = getPlaces();
+    const app = window.wbApp;
+    const visited = app?.getData()?.visited || {};
     for (const p of places) {
       const [cx, cy] = lngLatToSvg(p.lon, p.lat);
+      const info = visited[p.id];
+      const isVisited = !!info;
+      const count = info?.count || 0;
+      const fill = isVisited ? "#f59e0b" : "#8b5cf6";
+      const labelFill = isVisited ? "#b45309" : "#6d28d9";
+      const r = isVisited && count > 1 ? 4.5 : 3.5;
       const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
       marker.setAttribute("class", "poi-marker");
       marker.setAttribute("data-place-id", p.id);
       marker.style.cursor = "pointer";
-      marker.innerHTML = `
-        <circle cx="${cx}" cy="${cy}" r="3.5" fill="#8b5cf6" stroke="#fff" stroke-width="0.8" opacity="0.7"/>
-        <text x="${cx}" y="${cy - 5}" text-anchor="middle" fill="#6d28d9" font-size="2.8" font-weight="600" stroke="#fff" stroke-width="0.3" paint-order="stroke" pointer-events="none">${esc(p.name)}</text>
-      `;
+      let inner = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#fff" stroke-width="0.8" opacity="0.85"/>`;
+      if (isVisited && count > 1) {
+        inner += `<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="3.5" font-weight="700" pointer-events="none">${count}</text>`;
+      }
+      inner += `<text x="${cx}" y="${cy - 5.5}" text-anchor="middle" fill="${labelFill}" font-size="2.8" font-weight="600" stroke="#fff" stroke-width="0.3" paint-order="stroke" pointer-events="none">${esc(p.name)}</text>`;
+      marker.innerHTML = inner;
       marker.addEventListener("click", (e) => {
         e.stopPropagation();
         focusOnPlace(p.id);
@@ -532,17 +549,17 @@
     const lookup = [...allCities, ...allPlaces];
 
     for (const [cityId, info] of Object.entries(visited)) {
+      if (allPlaces.some((p) => p.id === cityId)) continue;
       const item = lookup.find((c) => c.id === cityId);
       if (!item) continue;
       const [cx, cy] = lngLatToSvg(item.lon, item.lat);
       const count = info.count || 1;
-      const isPlace = allPlaces.some((p) => p.id === cityId);
       const r = count > 1 ? 5 : 4;
       const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
       circle.setAttribute("cx", cx);
       circle.setAttribute("cy", cy);
       circle.setAttribute("r", r);
-      circle.setAttribute("fill", isPlace ? "#8b5cf6" : "#f59e0b");
+      circle.setAttribute("fill", "#f59e0b");
       circle.setAttribute("stroke", "#fff");
       circle.setAttribute("stroke-width", "1.2");
       circle.setAttribute("opacity", "0.9");
@@ -602,6 +619,18 @@
     const list = document.getElementById("forecast-list");
     if (list) list.innerHTML = "";
 
+    fillCityMeta(place, place.id);
+    const tabsEl = document.getElementById("detail-tabs");
+    if (tabsEl) {
+      document.querySelector('.detail-tab[data-tab="weather"]')?.classList.add("hidden");
+    }
+
+    fetchCityPhotos(place.id).then((photos) => {
+      if (photos.length) {
+        showPhotoSlider(photos);
+        _applyPhotoTheme("photo");
+      }
+    });
     updateVisitedUI();
   }
 
@@ -654,6 +683,7 @@
     if (!item) return;
 
     closeProfile();
+    if (_clearMapFocus) _clearMapFocus();
 
     const city = allCities.find((c) => c.id === placeId);
     if (city) {
@@ -672,14 +702,9 @@
 
     fillPlacePanel(item);
     if (_zoomCtrl) {
-      _zoomCtrl.resetView();
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const [cx, cy] = lngLatToSvg(item.lon, item.lat);
-          const [elX, elY] = svgToElGlobal(cx, cy);
-          _zoomCtrl.focusOnPoint(elX, elY, 4);
-        });
-      });
+      const [cx, cy] = lngLatToSvg(item.lon, item.lat);
+      const [elX, elY] = svgToElGlobal(cx, cy);
+      _zoomCtrl.focusOnPoint(elX, elY, 4);
     }
   }
 
@@ -688,12 +713,17 @@
     const wrap = document.getElementById("svg-wrap");
     if (!svg || !wrap) return [0, 0];
     const vb = svg.viewBox.baseVal;
-    const svgRect = svg.getBoundingClientRect();
     const wrapRect = wrap.getBoundingClientRect();
-    const scaleX = svgRect.width / vb.width;
-    const px = svgRect.left + (svgX - vb.x) * scaleX - wrapRect.left - wrapRect.width / 2;
-    const py = svgRect.top + (svgY - vb.y) * scaleX - wrapRect.top - wrapRect.height / 2;
-    return [px, py];
+    const wrapW = wrapRect.width;
+    const wrapH = wrapRect.height;
+    const svgScale = Math.min(wrapW / vb.width, wrapH / vb.height);
+    const renderedW = vb.width * svgScale;
+    const renderedH = vb.height * svgScale;
+    const offsetX = (wrapW - renderedW) / 2;
+    const offsetY = (wrapH - renderedH) / 2;
+    const elX = offsetX + svgX * svgScale;
+    const elY = offsetY + svgY * svgScale;
+    return [elX, elY];
   }
 
   function renderHomeMarker() {
@@ -747,6 +777,8 @@
       if (email) email.textContent = user.email || "";
     }
 
+    renderProfileInterests();
+
     const allCities = getAllCities();
     const allPlaces = getPlaces();
     const lookup = [...allCities, ...allPlaces];
@@ -794,6 +826,7 @@
         if (!cityId) return;
         await app.toggleVisited(cityId);
         renderVisitedMarkers();
+        renderPOIMarkers();
         updateVisitedUI();
         fillProfile();
       });
@@ -821,19 +854,24 @@
     const startLat = home?.lat ?? 53.9;
     const startLon = home?.lon ?? 27.56;
 
+    const userTags = new Set(app.getInterests() || []);
     const remaining = [...unvisited];
     const route = [];
     let curLat = startLat;
     let curLon = startLon;
 
     while (remaining.length > 0 && route.length < 10) {
-      let minDist = Infinity;
-      let nearest = 0;
+      let bestScore = -Infinity;
+      let bestIdx = 0;
       for (let i = 0; i < remaining.length; i++) {
-        const d = Math.hypot(remaining[i].lat - curLat, remaining[i].lon - curLon);
-        if (d < minDist) { minDist = d; nearest = i; }
+        const c = remaining[i];
+        const dist = haversine(curLat, curLon, c.lat, c.lon);
+        const rating = c.rating || 5;
+        const tagBoost = (c.tags || []).some((t) => userTags.has(t)) ? 2 : 1;
+        const score = rating * tagBoost / (1 + dist * 0.1);
+        if (score > bestScore) { bestScore = score; bestIdx = i; }
       }
-      const city = remaining.splice(nearest, 1)[0];
+      const city = remaining.splice(bestIdx, 1)[0];
       route.push(city);
       curLat = city.lat;
       curLon = city.lon;
@@ -896,6 +934,7 @@
 
       const isPlace = allPlaces.some((p) => p.id === c.id);
       const desc = c.desc || c.about || "";
+      const hl = c.highlights || [];
       html += `<div class="route-item flex items-start gap-2.5 p-2 rounded-lg bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" data-place-id="${esc(c.id)}">
         <div class="flex flex-col items-center gap-0.5 pt-0.5">
           <span class="text-[0.6rem] font-bold text-blue-500">${i + 1}</span>
@@ -904,6 +943,7 @@
         <div class="flex flex-col gap-0.5 min-w-0 flex-1">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${esc(c.name)}</span>
           ${desc ? `<span class="text-[0.6rem] text-gray-400 leading-tight">${esc(desc.slice(0, 80))}${desc.length > 80 ? "…" : ""}</span>` : ""}
+          ${hl.length ? `<div class="flex flex-wrap gap-1 mt-0.5">${hl.map((h) => `<span class="text-[0.55rem] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">${esc(h)}</span>`).join("")}</div>` : ""}
         </div>
         <div class="w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
       </div>`;
@@ -1001,8 +1041,12 @@
       if (firstCall) {
         requestAnimationFrame(() => authWrap.style.opacity = "1");
         firstCall = false;
+        if (user && !data?.interests?.length) {
+          setTimeout(showInterestsModal, 500);
+        }
       }
       renderVisitedMarkers();
+      renderPOIMarkers();
       renderHomeMarker();
       updateVisitedUI();
       restoreSavedRoute();
@@ -1028,6 +1072,7 @@
       }
       updateVisitedUI();
       renderVisitedMarkers();
+      renderPOIMarkers();
     });
 
     unvisitBtn?.addEventListener("click", async () => {
@@ -1037,6 +1082,7 @@
       await app.toggleVisited(_currentCityId);
       updateVisitedUI();
       renderVisitedMarkers();
+      renderPOIMarkers();
     });
   }
 
@@ -1070,6 +1116,76 @@
           renderRouteLine();
           renderRouteUI(_currentRoute, home?.lat ?? 53.9, home?.lon ?? 27.56, getPlaces());
         }
+      });
+    });
+  }
+
+  function _tagBtn(tag, active) {
+    const cls = active
+      ? "bg-teal-500 text-white border-teal-500"
+      : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600";
+    return `<button data-tag="${esc(tag)}" class="interest-tag px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${cls}">${esc(TAG_LABELS[tag] || tag)}</button>`;
+  }
+
+  function showInterestsModal() {
+    const overlay = document.getElementById("interests-overlay");
+    const modal = document.getElementById("interests-modal");
+    const grid = document.getElementById("interests-grid");
+    const saveBtn = document.getElementById("interests-save");
+    if (!overlay || !modal || !grid || !saveBtn) return;
+
+    const selected = new Set();
+    grid.innerHTML = ALL_TAGS.map((t) => _tagBtn(t, false)).join("");
+
+    grid.querySelectorAll(".interest-tag").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tag = btn.getAttribute("data-tag");
+        if (selected.has(tag)) { selected.delete(tag); } else { selected.add(tag); }
+        btn.classList.toggle("bg-teal-500", selected.has(tag));
+        btn.classList.toggle("text-white", selected.has(tag));
+        btn.classList.toggle("border-teal-500", selected.has(tag));
+        btn.classList.toggle("bg-gray-100", !selected.has(tag));
+        btn.classList.toggle("dark:bg-gray-700", !selected.has(tag));
+        btn.classList.toggle("text-gray-600", !selected.has(tag));
+        btn.classList.toggle("dark:text-gray-300", !selected.has(tag));
+        btn.classList.toggle("border-gray-200", !selected.has(tag));
+        btn.classList.toggle("dark:border-gray-600", !selected.has(tag));
+      });
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      const app = window.wbApp;
+      if (app) await app.saveInterests([...selected]);
+      overlay.classList.add("hidden");
+      modal.classList.add("hidden");
+    }, { once: true });
+
+    overlay.classList.remove("hidden");
+    modal.classList.remove("hidden");
+  }
+
+  function renderProfileInterests() {
+    const grid = document.getElementById("profile-interests-grid");
+    if (!grid) return;
+    const app = window.wbApp;
+    const current = new Set(app?.getInterests() || []);
+
+    grid.innerHTML = ALL_TAGS.map((t) => _tagBtn(t, current.has(t))).join("");
+
+    grid.querySelectorAll(".interest-tag").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const tag = btn.getAttribute("data-tag");
+        if (current.has(tag)) { current.delete(tag); } else { current.add(tag); }
+        btn.classList.toggle("bg-teal-500", current.has(tag));
+        btn.classList.toggle("text-white", current.has(tag));
+        btn.classList.toggle("border-teal-500", current.has(tag));
+        btn.classList.toggle("bg-gray-100", !current.has(tag));
+        btn.classList.toggle("dark:bg-gray-700", !current.has(tag));
+        btn.classList.toggle("text-gray-600", !current.has(tag));
+        btn.classList.toggle("dark:text-gray-300", !current.has(tag));
+        btn.classList.toggle("border-gray-200", !current.has(tag));
+        btn.classList.toggle("dark:border-gray-600", !current.has(tag));
+        if (app) await app.saveInterests([...current]);
       });
     });
   }
@@ -1123,12 +1239,232 @@
     document.getElementById("city-about")?.classList.add("hidden");
     document.getElementById("visited-section")?.classList.add("hidden");
     document.getElementById("secret-fact")?.classList.add("hidden");
+    document.getElementById("city-rating")?.classList.add("hidden");
+    document.getElementById("city-highlights")?.classList.add("hidden");
+    document.getElementById("city-tags")?.classList.add("hidden");
+    document.getElementById("detail-tabs")?.classList.add("hidden");
     _currentCityId = null;
     _currentCitySecret = null;
     if (_clearMapFocus) _clearMapFocus();
     if (_lastFocused && typeof _lastFocused.focus === "function") {
       _lastFocused.focus();
       _lastFocused = null;
+    }
+  }
+
+  let _activeTab = "info";
+  let _cityHighlightsFilter = "interest";
+  function switchDetailTab(tab) {
+    _activeTab = tab;
+    const infoTab = document.getElementById("tab-info");
+    const weatherTab = document.getElementById("tab-weather");
+    if (infoTab) infoTab.classList.toggle("hidden", tab !== "info");
+    if (weatherTab) weatherTab.classList.toggle("hidden", tab !== "weather");
+    document.querySelectorAll(".detail-tab").forEach((btn) => {
+      const isActive = btn.getAttribute("data-tab") === tab;
+      btn.classList.toggle("bg-white", isActive);
+      btn.classList.toggle("dark:bg-white/15", isActive);
+      btn.classList.toggle("text-gray-800", isActive);
+      btn.classList.toggle("dark:text-white", isActive);
+      btn.classList.toggle("shadow-sm", isActive);
+      btn.classList.toggle("text-gray-400", !isActive);
+      btn.classList.toggle("dark:text-gray-500", !isActive);
+    });
+  }
+
+  function setupDetailTabs() {
+    document.querySelectorAll(".detail-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        switchDetailTab(btn.getAttribute("data-tab"));
+      });
+    });
+  }
+
+  function normalizeHighlightItem(item) {
+    if (typeof item === "string") return { name: item, desc: "", tags: ["history"] };
+    return { name: item.name || "", desc: item.desc || "", tags: item.tags || ["history"] };
+  }
+
+  function showHighlightModal(item, photo, cityName) {
+    const overlay = document.getElementById("hl-modal-overlay");
+    const modal = document.getElementById("hl-modal");
+    if (!overlay || !modal) return;
+    const photoEl = document.getElementById("hl-modal-photo");
+    const nameEl = document.getElementById("hl-modal-name");
+    const descEl = document.getElementById("hl-modal-desc");
+    const tagsEl = document.getElementById("hl-modal-tags");
+    const cityEl = document.getElementById("hl-modal-city");
+    if (photo) {
+      photoEl.style.backgroundImage = `url('${photo}')`;
+      photoEl.classList.remove("hidden");
+    } else {
+      photoEl.style.backgroundImage = "";
+      photoEl.classList.add("hidden");
+    }
+    nameEl.textContent = item.name;
+    descEl.textContent = item.desc || "";
+    descEl.classList.toggle("hidden", !item.desc);
+    const userTags = new Set(window.wbApp?.getInterests() || []);
+    tagsEl.innerHTML = (item.tags || []).map((t) => {
+      const m = userTags.has(t);
+      return `<span class="text-xs px-2 py-1 rounded-lg font-medium ${m ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"}">${esc(TAG_LABELS[t] || t)}</span>`;
+    }).join("");
+    cityEl.textContent = cityName;
+    overlay.classList.remove("hidden");
+    modal.classList.remove("hidden");
+    const close = () => {
+      overlay.classList.add("hidden");
+      modal.classList.add("hidden");
+      overlay.removeEventListener("click", close);
+      document.getElementById("hl-modal-close")?.removeEventListener("click", close);
+    };
+    overlay.addEventListener("click", close);
+    document.getElementById("hl-modal-close")?.addEventListener("click", close);
+  }
+
+  function getHighlightMatchScore(item, userTags) {
+    if (!userTags?.size) return 0;
+    return item.tags.reduce((sum, tag) => sum + (userTags.has(tag) ? 1 : 0), 0);
+  }
+
+
+  function setHighlightsFilterUI(mode, hasInterestFilter) {
+    const wrap = document.getElementById("city-highlights-filter");
+    const allBtn = document.getElementById("city-highlights-all");
+    const interestBtn = document.getElementById("city-highlights-interest");
+    if (!wrap || !allBtn || !interestBtn) return;
+
+    wrap.classList.toggle("hidden", !hasInterestFilter);
+    wrap.classList.toggle("flex", hasInterestFilter);
+
+    const paint = (btn, active) => {
+      btn.classList.toggle("bg-white", active);
+      btn.classList.toggle("dark:bg-white/15", active);
+      btn.classList.toggle("text-gray-700", active);
+      btn.classList.toggle("dark:text-gray-200", active);
+      btn.classList.toggle("shadow-sm", active);
+      btn.classList.toggle("text-gray-400", !active);
+      btn.classList.toggle("dark:text-gray-500", !active);
+    };
+    paint(allBtn, mode === "all");
+    paint(interestBtn, mode === "interest");
+  }
+
+  async function fillCityMeta(city, photoKey = null) {
+    const tabsEl = document.getElementById("detail-tabs");
+    if (tabsEl) tabsEl.classList.remove("hidden");
+    switchDetailTab("info");
+
+    const ratingWrap = document.getElementById("city-rating");
+    if (ratingWrap && city.rating) {
+      ratingWrap.classList.remove("hidden");
+      const stars = document.getElementById("city-rating-stars");
+      const val = document.getElementById("city-rating-value");
+      if (stars) {
+        const full = Math.round(city.rating / 2);
+        stars.textContent = "★".repeat(full) + "☆".repeat(5 - full);
+        stars.className = "text-sm text-amber-400";
+      }
+      if (val) val.textContent = city.rating + "/10";
+    } else {
+      ratingWrap?.classList.add("hidden");
+    }
+
+    const hlWrap = document.getElementById("city-highlights");
+    const hlList = document.getElementById("city-highlights-list");
+    const hlTitle = hlWrap?.querySelector("h4");
+    const highlights = (city.highlights || []).map((item, idx) => ({ ...normalizeHighlightItem(item), _idx: idx }));
+    if (hlWrap && hlList && highlights.length) {
+      hlWrap.classList.remove("hidden");
+      const userTags = new Set(window.wbApp?.getInterests() || []);
+      const hasInterestFilter = userTags.size > 0;
+      if (!hasInterestFilter) _cityHighlightsFilter = "all";
+      if (hasInterestFilter && _cityHighlightsFilter !== "interest" && _cityHighlightsFilter !== "all") {
+        _cityHighlightsFilter = "interest";
+      }
+      if (hasInterestFilter && _cityHighlightsFilter === "all") {
+      } else if (hasInterestFilter) {
+        _cityHighlightsFilter = "interest";
+      }
+
+      const orderedHighlights = [...highlights].sort((a, b) => {
+        const scoreDiff = getHighlightMatchScore(b, userTags) - getHighlightMatchScore(a, userTags);
+        if (scoreDiff !== 0) return scoreDiff;
+        return a._idx - b._idx;
+      });
+      const matchedOnly = orderedHighlights.filter((item) => getHighlightMatchScore(item, userTags) > 0);
+      const hasMatches = hasInterestFilter && matchedOnly.length > 0;
+      const visibleHighlights = hasInterestFilter && _cityHighlightsFilter === "interest" && hasMatches
+        ? matchedOnly
+        : orderedHighlights;
+      let photos = photoKey ? await fetchCityPhotos(photoKey) : [];
+      if (!photos.length && city.id) photos = await fetchCityPhotos(city.id);
+      if (_currentCityId !== city.id) return;
+
+      if (hlTitle) {
+        hlTitle.textContent = hasInterestFilter && _cityHighlightsFilter === "interest" && hasMatches
+          ? "Что посетить (интересы)"
+          : "Что посетить";
+      }
+      setHighlightsFilterUI(_cityHighlightsFilter, hasInterestFilter);
+
+      const allBtn = document.getElementById("city-highlights-all");
+      const interestBtn = document.getElementById("city-highlights-interest");
+      allBtn?.replaceWith(allBtn.cloneNode(true));
+      interestBtn?.replaceWith(interestBtn.cloneNode(true));
+      document.getElementById("city-highlights-all")?.addEventListener("click", () => {
+        _cityHighlightsFilter = "all";
+        fillCityMeta(city, photoKey);
+      });
+      document.getElementById("city-highlights-interest")?.addEventListener("click", () => {
+        _cityHighlightsFilter = "interest";
+        fillCityMeta(city, photoKey);
+      });
+
+      hlList.innerHTML = visibleHighlights.map((item, idx) => {
+        const matchScore = getHighlightMatchScore(item, userTags);
+        const matched = matchScore > 0;
+        const visibleTags = item.tags.slice(0, 3);
+        const photo = photos.length ? photos[(idx * 3) % photos.length] : "";
+        return `
+          <div class="hl-card flex gap-3 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "bg-white dark:bg-white/3 ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
+            <div class="w-14 h-14 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/60 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
+              ${photo ? "" : `<svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
+            </div>
+            <div class="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
+              <span class="text-[0.8rem] leading-snug font-semibold ${matched ? "text-teal-700 dark:text-teal-300" : "text-gray-700 dark:text-gray-200"}">${esc(item.name)}</span>
+              ${item.desc ? `<span class="text-[0.7rem] leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2">${esc(item.desc)}</span>` : ""}
+              <div class="flex flex-wrap gap-1 mt-0.5">
+                ${visibleTags.map((tag) => `<span class="text-[0.55rem] leading-none px-1.5 py-[3px] rounded ${userTags.has(tag) ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500"}">${esc(TAG_LABELS[tag] || tag)}</span>`).join("")}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      hlList.querySelectorAll(".hl-card").forEach((card) => {
+        card.addEventListener("click", () => {
+          const idx = parseInt(card.getAttribute("data-hl-idx"), 10);
+          const item = visibleHighlights[idx];
+          if (item) showHighlightModal(item, photos.length ? photos[(idx * 3) % photos.length] : "", city.name);
+        });
+      });
+    } else {
+      hlWrap?.classList.add("hidden");
+    }
+
+    const tagsWrap = document.getElementById("city-tags");
+    const tagsList = document.getElementById("city-tags-list");
+    const tags = city.tags || [];
+    if (tagsWrap && tagsList && tags.length) {
+      tagsWrap.classList.remove("hidden");
+      const userTags = new Set(window.wbApp?.getInterests() || []);
+      tagsList.innerHTML = tags.map((t) => {
+        const match = userTags.has(t);
+        return `<span class="text-[0.6rem] px-2 py-0.5 rounded-md font-medium ${match ? "bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300" : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"}">${esc(TAG_LABELS[t] || t)}</span>`;
+      }).join("");
+    } else {
+      tagsWrap?.classList.add("hidden");
     }
   }
 
@@ -1207,6 +1543,12 @@
       }
     }
     updateVisitedUI();
+
+    const allCities = getAllCities();
+    const allPlaces = getPlaces();
+    const cityObj = [...allCities, ...allPlaces].find((c) => c.id === cityId);
+    if (cityObj) fillCityMeta(cityObj, regionId);
+    document.querySelector('.detail-tab[data-tab="weather"]')?.classList.remove("hidden");
     set("detail-temp", cur.temp != null ? cur.temp + "°" : "—");
     set("detail-desc", cur.desc);
     const iconWrap = document.querySelector(".detail-icon-wrap");
@@ -1225,7 +1567,8 @@
       extra.innerHTML = parts.map((p) => `<span class="detail-extra-item p-2.5 rounded-xl bg-[#e8f8f5] dark:bg-white/10 text-gray-700 dark:text-gray-300 transition-colors duration-300">${esc(p)}</span>`).join("");
     }
 
-    fetchCityPhotos(regionId).then((photos) => {
+    fetchCityPhotos(regionId).then(async (photos) => {
+      if (!photos.length && cityId) photos = await fetchCityPhotos(cityId);
       if (photos.length) {
         showPhotoSlider(photos);
         _applyPhotoTheme("photo");
@@ -1999,6 +2342,7 @@
     setupAuthUI();
     setupVisitedBtn();
     setupProfile();
+    setupDetailTabs();
     setTimeout(setupGeolocation, 2000);
   }
 

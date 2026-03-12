@@ -9,13 +9,42 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-const CITIES = {
+const REGIONS = {
   brest: ["Brest Belarus", "Brest fortress Belarus", "Brest city"],
   vitebsk: ["Vitebsk Belarus", "Vitebsk city architecture"],
   gomel: ["Gomel Belarus city"],
   grodno: ["Grodno Belarus", "Grodno castle architecture"],
   minsk: ["Minsk Belarus city"],
   mogilev: ["Mogilev Belarus city"],
+};
+
+const PLACES = {
+  "belovezhskaya": ["Belovezhskaya Pushcha", "Bialowieza Forest Belarus"],
+  "mir-castle": ["Mir Castle Belarus"],
+  "nesvizh-castle": ["Nesvizh Castle Belarus", "Radziwill castle Nesvizh"],
+  "braslav-lakes": ["Braslav lakes Belarus"],
+  "dudutki": ["Dudutki museum Belarus"],
+  "khatyn": ["Khatyn memorial Belarus"],
+  "augustow-canal": ["Augustow canal Belarus"],
+  "narochansky": ["Naroch lake Belarus"],
+  "pripyatsky": ["Pripyat national park Belarus", "Polesie Belarus nature"],
+  "struve-arc": ["Struve geodetic arc Belarus"],
+  "brest-fortress": ["Brest fortress memorial", "Brest fortress hero"],
+  "sophia-cathedral": ["Sophia cathedral Polotsk Belarus"],
+  "baranovichi": ["Baranovichi Belarus city"],
+  "pinsk": ["Pinsk Belarus", "Pinsk Polesie"],
+  "kobrin": ["Kobrin Belarus"],
+  "orsha": ["Orsha Belarus city"],
+  "polotsk": ["Polotsk Belarus", "Polotsk ancient city"],
+  "mozyr": ["Mozyr Belarus", "Mozyr hills"],
+  "lida": ["Lida castle Belarus"],
+  "slonim": ["Slonim Belarus"],
+  "novogrudok": ["Novogrudok Belarus castle"],
+  "borisov": ["Borisov Belarus Berezina"],
+  "soligorsk": ["Soligorsk Belarus salt mine"],
+  "slutsk": ["Slutsk Belarus belt"],
+  "bobruysk": ["Bobruysk Belarus fortress"],
+  "mogilev-city": ["Mogilev Belarus city hall"],
 };
 
 const PHOTOS_DIR = path.join(__dirname, "..", "src", "photos");
@@ -77,8 +106,8 @@ async function searchPhotos(query) {
   }));
 }
 
-async function downloadCity(cityId, queries) {
-  console.log(`\n[${cityId}] Searching Unsplash...`);
+async function downloadItem(itemId, queries) {
+  console.log(`\n[${itemId}] Searching Unsplash...`);
   let photos = [];
   for (const q of (Array.isArray(queries) ? queries : [queries])) {
     const batch = await searchPhotos(q);
@@ -91,16 +120,16 @@ async function downloadCity(cityId, queries) {
   }
   console.log(`  Found ${photos.length} photos total`);
 
-  const cityDir = path.join(PHOTOS_DIR, cityId);
-  fs.mkdirSync(cityDir, { recursive: true });
+  const dir = path.join(PHOTOS_DIR, itemId);
+  fs.mkdirSync(dir, { recursive: true });
 
   const paths = [];
   for (let i = 0; i < photos.length; i++) {
     const p = photos[i];
     if (!p.url) continue;
     const filename = String(i + 1).padStart(2, "0") + ".jpg";
-    const filePath = path.join(cityDir, filename);
-    const relPath = `photos/${cityId}/${filename}`;
+    const filePath = path.join(dir, filename);
+    const relPath = `photos/${itemId}/${filename}`;
 
     process.stdout.write(`  Downloading ${i + 1}/${photos.length}...`);
     try {
@@ -111,18 +140,27 @@ async function downloadCity(cityId, queries) {
       process.stdout.write(` FAIL: ${err.message}\n`);
     }
   }
-
   return paths;
 }
 
 async function main() {
+  const onlyNew = process.argv.includes("--only-new");
   console.log("=== Unsplash Photo Downloader ===");
   console.log(`Output: ${PHOTOS_DIR}`);
 
-  const index = {};
+  let index = {};
+  if (fs.existsSync(INDEX_PATH)) {
+    try { index = JSON.parse(fs.readFileSync(INDEX_PATH, "utf-8")); } catch {}
+  }
 
-  for (const [cityId, query] of Object.entries(CITIES)) {
-    index[cityId] = await downloadCity(cityId, query);
+  const allItems = { ...REGIONS, ...PLACES };
+
+  for (const [id, query] of Object.entries(allItems)) {
+    if (onlyNew && index[id]?.length) {
+      console.log(`[${id}] Already has ${index[id].length} photos, skipping`);
+      continue;
+    }
+    index[id] = await downloadItem(id, query);
     await new Promise((r) => setTimeout(r, 1000));
   }
 
@@ -130,7 +168,7 @@ async function main() {
   console.log(`\nIndex saved to ${INDEX_PATH}`);
 
   const total = Object.values(index).reduce((s, a) => s + a.length, 0);
-  console.log(`Total: ${total} photos for ${Object.keys(index).length} cities`);
+  console.log(`Total: ${total} photos for ${Object.keys(index).length} items`);
 }
 
 main().catch((err) => {

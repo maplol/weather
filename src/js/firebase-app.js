@@ -68,6 +68,8 @@ async function mergeCloudAndLocal(uid) {
   else if (cloud?.home) merged.home = cloud.home;
   if (local.route) merged.route = local.route;
   else if (cloud?.route) merged.route = cloud.route;
+  if (local.interests?.length) merged.interests = local.interests;
+  else if (cloud?.interests?.length) merged.interests = cloud.interests;
 
   for (const [id, item] of Object.entries(cloud?.visited || {})) {
     const localItem = local.visited[id];
@@ -179,6 +181,15 @@ window.wbApp = {
   },
 
   getRoute() { return _data.route || null; },
+
+  async saveInterests(tags) {
+    _data.interests = tags;
+    await idbSet(_data);
+    if (_user) await saveToFirestore(_user.uid, _data);
+    notify();
+  },
+
+  getInterests() { return _data.interests || null; },
 
   async requestGeolocation() {
     return new Promise((resolve) => {
