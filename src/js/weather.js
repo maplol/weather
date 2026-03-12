@@ -506,10 +506,15 @@
       const marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
       marker.setAttribute("class", "poi-marker");
       marker.setAttribute("data-place-id", p.id);
+      marker.style.cursor = "pointer";
       marker.innerHTML = `
         <circle cx="${cx}" cy="${cy}" r="3.5" fill="#8b5cf6" stroke="#fff" stroke-width="0.8" opacity="0.7"/>
         <text x="${cx}" y="${cy - 5}" text-anchor="middle" fill="#6d28d9" font-size="2.8" font-weight="600" stroke="#fff" stroke-width="0.3" paint-order="stroke" pointer-events="none">${esc(p.name)}</text>
       `;
+      marker.addEventListener("click", (e) => {
+        e.stopPropagation();
+        focusOnPlace(p.id);
+      });
       g.appendChild(marker);
     }
   }
@@ -573,17 +578,21 @@
     _applyPhotoTheme("fallback");
 
     const iconWrap = document.querySelector(".detail-icon-wrap");
-    if (iconWrap) iconWrap.innerHTML = "";
+    if (iconWrap) iconWrap.innerHTML = `<svg class="w-16 h-16 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3"/></svg>`;
     const tempEl = document.getElementById("detail-temp");
     if (tempEl) tempEl.textContent = "";
     const descEl = document.getElementById("detail-desc");
-    if (descEl) descEl.textContent = place.desc || "";
+    if (descEl) descEl.textContent = "";
 
     const extra = document.getElementById("detail-extra");
     if (extra) extra.innerHTML = "";
 
     const aboutWrap = document.getElementById("city-about");
-    if (aboutWrap) aboutWrap.classList.add("hidden");
+    if (aboutWrap) {
+      aboutWrap.classList.remove("hidden");
+      const aboutText = document.getElementById("city-about-text");
+      if (aboutText) aboutText.textContent = place.desc || "";
+    }
 
     const hourly = document.getElementById("hourly-chart");
     if (hourly) { hourly.innerHTML = ""; hourly.classList.add("hidden"); hourly.setAttribute("aria-hidden", "true"); }
@@ -645,26 +654,23 @@
     if (!item) return;
 
     closeProfile();
-    if (_zoomCtrl) _zoomCtrl.resetView();
 
     const city = allCities.find((c) => c.id === placeId);
     if (city) {
       const regions = countries[currentCountry]?.regions || [];
       for (const region of regions) {
         if (region.cities?.some((c) => c.id === placeId)) {
+          onCityClick(city, region.id);
           requestAnimationFrame(() => {
             const pathEl = document.querySelector(`path.city-district[data-city-id="${placeId}"]`);
-            if (pathEl && _zoomCtrl) {
-              const [elX, elY] = svgToElGlobal(pathEl.getBBox().x + pathEl.getBBox().width / 2, pathEl.getBBox().y + pathEl.getBBox().height / 2);
-              _zoomCtrl.focusOnPoint(elX, elY, 3);
-            }
+            if (pathEl && _zoomToPath) _zoomToPath(pathEl);
           });
-          onCityClick(city, region.id);
           return;
         }
       }
     }
 
+    if (_zoomCtrl) _zoomCtrl.resetView();
     requestAnimationFrame(() => {
       const [cx, cy] = lngLatToSvg(item.lon, item.lat);
       if (_zoomCtrl) {
@@ -854,7 +860,7 @@
     return `<div class="flex items-center gap-1.5 py-1 px-2 text-[0.6rem] text-gray-400 dark:text-gray-500">
       <svg class="w-3 h-3 shrink-0 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
       <span>${_fmtDist(km)}</span>
-      <a href="https://rasp.by/search/?from=${from}&to=${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">расписание</a>
+      <a href="https://atlasbus.by/%D0%9C%D0%B0%D1%80%D1%88%D1%80%D1%83%D1%82%D1%8B/${from}/${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">расписание</a>
     </div>`;
   }
 
@@ -1088,6 +1094,7 @@
   let _lastFocused = null;
   let _zoomCtrl = null;
   let _clearMapFocus = null;
+  let _zoomToPath = null;
 
   function openPanel() {
     _lastFocused = document.activeElement;
@@ -1950,6 +1957,7 @@
           zoomCtrl.unfocus();
         }
         _clearMapFocus = clearMapFocus;
+        _zoomToPath = zoomToPath;
 
         wrap.addEventListener("click", (e) => {
           if (zoomCtrl.wasPan()) return;
