@@ -44,6 +44,13 @@ async function idbSet(data) {
   });
 }
 
+function _normalizeHL(val) {
+  if (!val) return null;
+  if (val.visits && Array.isArray(val.visits)) return val;
+  if (val.date) return { visits: [val.date] };
+  return { visits: [] };
+}
+
 let _user = null;
 let _data = { visited: {}, visitedHighlights: {} };
 const _listeners = new Set();
@@ -89,10 +96,11 @@ async function mergeCloudAndLocal(uid) {
   const cloudHL = cloud?.visitedHighlights || {};
   const allHLKeys = new Set([...Object.keys(localHL), ...Object.keys(cloudHL)]);
   for (const key of allHLKeys) {
-    const l = localHL[key];
-    const c = cloudHL[key];
+    const l = _normalizeHL(localHL[key]);
+    const c = _normalizeHL(cloudHL[key]);
     if (l && c) {
-      merged.visitedHighlights[key] = { date: l.date < c.date ? l.date : c.date };
+      const allVisits = [...new Set([...l.visits, ...c.visits])].sort();
+      merged.visitedHighlights[key] = { visits: allVisits };
     } else {
       merged.visitedHighlights[key] = l || c;
     }
@@ -134,8 +142,9 @@ window.wbApp = {
   getUser() { return _user; },
   getData() { return _data; },
 
-  async toggleVisited(cityId) {
-    const today = new Date().toISOString().slice(0, 10);
+  async toggleVisited(cityId, dateStr) {
+    const date = dateStr || new Date().toISOString().slice(0, 10);
+    const dateOnly = date.slice(0, 10);
     if (_data.visited[cityId]) {
       delete _data.visited[cityId];
       await idbSet(_data);
@@ -145,21 +154,23 @@ window.wbApp = {
         }, { merge: true });
       }
     } else {
-      _data.visited[cityId] = { count: 1, firstVisit: today, lastVisit: today };
+      _data.visited[cityId] = { count: 1, firstVisit: dateOnly, lastVisit: date };
       await idbSet(_data);
       if (_user) await saveToFirestore(_user.uid, _data);
     }
     notify();
   },
 
-  async incrementVisited(cityId) {
-    const today = new Date().toISOString().slice(0, 10);
+  async incrementVisited(cityId, dateStr) {
+    const date = dateStr || new Date().toISOString().slice(0, 10);
+    const dateOnly = date.slice(0, 10);
     const existing = _data.visited[cityId];
     if (existing) {
       existing.count = (existing.count || 1) + 1;
-      existing.lastVisit = today;
+      existing.lastVisit = date;
+      if (dateOnly < (existing.firstVisit || "9999")) existing.firstVisit = dateOnly;
     } else {
-      _data.visited[cityId] = { count: 1, firstVisit: today, lastVisit: today };
+      _data.visited[cityId] = { count: 1, firstVisit: dateOnly, lastVisit: date };
     }
     await idbSet(_data);
     if (_user) await saveToFirestore(_user.uid, _data);
@@ -208,11 +219,32 @@ window.wbApp = {
 
   getInterests() { return _data.interests || null; },
 
-  async toggleHighlightVisited(cityId, hlName) {
+  async addHighlightVisit(cityId, hlName, dateStr) {
     const key = cityId + "::" + hlName;
-    const today = new Date().toISOString().slice(0, 10);
+    const date = dateStr || new Date().toISOString().slice(0, 10);
+    const dateOnly = date.slice(0, 10);
     if (!_data.visitedHighlights) _data.visitedHighlights = {};
-    if (_data.visitedHighlights[key]) {
+    const existing = _normalizeHL(_data.visitedHighlights[key]);
+    if (existing) {
+      existing.visits.push(date);
+      _data.visitedHighlights[key] = existing;
+    } else {
+      _data.visitedHighlights[key] = { visits: [date] };
+    }
+    if (!_data.visited[cityId]) {
+      _data.visited[cityId] = { count: 1, firstVisit: dateOnly, lastVisit: date };
+    }
+    await idbSet(_data);
+    if (_user) await saveToFirestore(_user.uid, _data);
+    notify();
+  },
+
+  async removeHighlightVisitByIndex(cityId, hlName, index) {
+    const key = cityId + "::" + hlName;
+    const entry = _normalizeHL(_data.visitedHighlights?.[key]);
+    if (!entry || index < 0 || index >= entry.visits.length) return;
+    entry.visits.splice(index, 1);
+    if (entry.visits.length === 0) {
       delete _data.visitedHighlights[key];
       await idbSet(_data);
       if (_user) {
@@ -221,10 +253,7 @@ window.wbApp = {
         }, { merge: true });
       }
     } else {
-      _data.visitedHighlights[key] = { date: today };
-      if (!_data.visited[cityId]) {
-        _data.visited[cityId] = { count: 1, firstVisit: today, lastVisit: today };
-      }
+      _data.visitedHighlights[key] = entry;
       await idbSet(_data);
       if (_user) await saveToFirestore(_user.uid, _data);
     }
@@ -232,7 +261,18 @@ window.wbApp = {
   },
 
   isHighlightVisited(cityId, hlName) {
-    return !!(_data.visitedHighlights || {})[cityId + "::" + hlName];
+    const entry = _normalizeHL((_data.visitedHighlights || {})[cityId + "::" + hlName]);
+    return entry ? entry.visits.length > 0 : false;
+  },
+
+  getHighlightVisitCount(cityId, hlName) {
+    const entry = _normalizeHL((_data.visitedHighlights || {})[cityId + "::" + hlName]);
+    return entry ? entry.visits.length : 0;
+  },
+
+  getHighlightVisits(cityId, hlName) {
+    const entry = _normalizeHL((_data.visitedHighlights || {})[cityId + "::" + hlName]);
+    return entry ? [...entry.visits] : [];
   },
 
   getVisitedHighlights() {
@@ -244,10 +284,22 @@ window.wbApp = {
     const prefix = cityId + "::";
     for (const [key, val] of Object.entries(_data.visitedHighlights || {})) {
       if (key.startsWith(prefix)) {
-        result.push({ name: key.slice(prefix.length), date: val.date });
+        const norm = _normalizeHL(val);
+        result.push({ name: key.slice(prefix.length), visits: norm ? norm.visits : [] });
       }
     }
     return result;
+  },
+
+  hasVisitedHighlights(cityId) {
+    const prefix = cityId + "::";
+    for (const [key, val] of Object.entries(_data.visitedHighlights || {})) {
+      if (key.startsWith(prefix)) {
+        const norm = _normalizeHL(val);
+        if (norm && norm.visits.length > 0) return true;
+      }
+    }
+    return false;
   },
 
   async removeHighlightVisit(cityId, hlName) {

@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-	<title>Погода</title>
+	<title>WBelarus — Way & Weather</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -96,7 +96,7 @@
 	<div id="detail-overlay"
 		class="fixed inset-0 z-[100] opacity-0 invisible transition-all duration-300 pointer-events-none data-[visible=true]:opacity-100 data-[visible=true]:visible data-[visible=true]:pointer-events-auto"
 		data-visible="false" aria-hidden="true"></div>
-	<aside id="detail-panel" role="dialog" aria-modal="true" aria-label="Погода региона"
+	<aside id="detail-panel" role="dialog" aria-modal="true" aria-label="Информация о регионе"
 		class="fixed top-0 right-0 w-full sm:w-[min(400px,90vw)] max-w-full h-full bg-gradient-to-b from-white to-gray-50 dark:from-[#1a2233] dark:to-[#111827] z-[101] shadow-[-8px_0_40px_rgba(0,0,0,0.15)] overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-x-full data-[visible=true]:translate-x-0"
 		data-visible="false" aria-hidden="true">
 		<button
@@ -157,10 +157,11 @@
 			<div id="city-highlights" class="hidden px-6 sm:px-8 pb-2">
 				<div class="flex items-center justify-between gap-3 mb-1.5">
 					<h4 class="text-xs font-bold text-gray-600 dark:text-gray-300">Что посетить</h4>
-					<div id="city-highlights-filter" class="hidden items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/5 p-0.5">
-						<button id="city-highlights-all" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md bg-white dark:bg-white/15 text-gray-700 dark:text-gray-200 shadow-sm transition-colors">Все</button>
-						<button id="city-highlights-interest" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">По интересам</button>
-					</div>
+				<div id="city-highlights-filter" class="hidden items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/5 p-0.5">
+					<button id="city-highlights-all" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md bg-white dark:bg-white/15 text-gray-700 dark:text-gray-200 shadow-sm transition-colors">Все</button>
+					<button id="city-highlights-interest" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">По интересам</button>
+					<button id="city-highlights-visited" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">Посещено</button>
+				</div>
 				</div>
 				<div id="city-highlights-list" class="flex flex-col gap-1"></div>
 			</div>
@@ -287,8 +288,30 @@
 			<div id="hl-modal-tags" class="flex flex-wrap gap-1.5"></div>
 			<div class="flex items-center justify-between">
 				<p id="hl-modal-city" class="text-xs text-gray-400 dark:text-gray-500"></p>
-				<button id="hl-modal-visit-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"></button>
+				<div class="flex items-center gap-1.5">
+					<button id="hl-modal-delete-btn" class="hidden w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all active:scale-95" aria-label="Убрать из посещённых" title="Убрать из посещённых">
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+					</button>
+					<button id="hl-modal-visit-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"></button>
+				</div>
 			</div>
+		</div>
+	</div>
+
+	<div id="visit-date-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[450] hidden"></div>
+	<div id="visit-date-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(340px,88vw)] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[451] p-5 sm:p-6 hidden">
+		<h3 class="text-base font-bold text-gray-800 dark:text-white mb-1">Когда вы посетили?</h3>
+		<p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Выберите дату или нажмите «Сейчас»</p>
+		<div class="flex flex-col gap-3">
+			<div class="flex gap-2">
+				<input id="visit-date-input" type="date" class="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
+				<input id="visit-time-input" type="time" class="w-[100px] px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
+			</div>
+			<div class="flex gap-2">
+				<button id="visit-date-now" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white shadow-md transition-all active:scale-[0.97]">Сейчас</button>
+				<button id="visit-date-save" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all active:scale-[0.97]">Сохранить</button>
+			</div>
+			<button id="visit-date-cancel" class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">Отмена</button>
 		</div>
 	</div>
 

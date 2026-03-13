@@ -70,8 +70,77 @@
     return el.innerHTML;
   }
 
+  function fmtDate(raw) {
+    if (!raw) return "";
+    const hasTime = raw.includes("T");
+    const d = raw.slice(8, 10), m = raw.slice(5, 7), y = raw.slice(0, 4);
+    if (hasTime) return `${d}.${m}.${y} ${raw.slice(11, 16)}`;
+    return `${d}.${m}.${y}`;
+  }
+
   let _currentCityId = null;
   let _currentCitySecret = null;
+
+  function _showToast(msg, duration = 3000) {
+    let container = document.getElementById("wb-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "wb-toast-container";
+      container.className = "fixed bottom-20 left-1/2 -translate-x-1/2 z-[500] flex flex-col items-center gap-2 pointer-events-none";
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement("div");
+    toast.className = "px-4 py-2.5 rounded-xl bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 text-xs font-semibold shadow-lg backdrop-blur-sm pointer-events-auto opacity-0 translate-y-2 transition-all duration-300";
+    toast.textContent = msg;
+    container.appendChild(toast);
+    requestAnimationFrame(() => { toast.classList.remove("opacity-0", "translate-y-2"); });
+    setTimeout(() => {
+      toast.classList.add("opacity-0", "translate-y-2");
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  function _openVisitDateModal() {
+    return new Promise((resolve) => {
+      const overlay = document.getElementById("visit-date-overlay");
+      const modal = document.getElementById("visit-date-modal");
+      const dateInput = document.getElementById("visit-date-input");
+      const timeInput = document.getElementById("visit-time-input");
+      const nowBtn = document.getElementById("visit-date-now");
+      const saveBtn = document.getElementById("visit-date-save");
+      const cancelBtn = document.getElementById("visit-date-cancel");
+      if (!overlay || !modal) { resolve(null); return; }
+
+      const now = new Date();
+      dateInput.value = now.toISOString().slice(0, 10);
+      timeInput.value = now.toTimeString().slice(0, 5);
+      dateInput.max = now.toISOString().slice(0, 10);
+
+      overlay.classList.remove("hidden");
+      modal.classList.remove("hidden");
+
+      const cleanup = () => {
+        overlay.classList.add("hidden");
+        modal.classList.add("hidden");
+        nowBtn.removeEventListener("click", onNow);
+        saveBtn.removeEventListener("click", onSave);
+        cancelBtn.removeEventListener("click", onCancel);
+        overlay.removeEventListener("click", onCancel);
+      };
+      const onNow = () => { cleanup(); const n = new Date(); resolve(n.toISOString().slice(0, 10) + "T" + n.toTimeString().slice(0, 5)); };
+      const onSave = () => {
+        if (!dateInput.value) { dateInput.focus(); return; }
+        cleanup();
+        resolve(dateInput.value + (timeInput.value ? "T" + timeInput.value : ""));
+      };
+      const onCancel = () => { cleanup(); resolve(null); };
+
+      nowBtn.addEventListener("click", onNow);
+      saveBtn.addEventListener("click", onSave);
+      cancelBtn.addEventListener("click", onCancel);
+      overlay.addEventListener("click", onCancel);
+    });
+  }
 
   let _photosIndex = null;
 
@@ -817,22 +886,30 @@
       const date = info?.lastVisit || "";
       const isPlace = allPlaces.some((p) => p.id === id);
       const hlVisits = app.getVisitedHighlightsForCity?.(id) || [];
-      const hlHtml = hlVisits.length ? `<div class="flex flex-col gap-1 mt-1.5 ml-5 border-l-2 border-amber-300/40 dark:border-amber-500/20 pl-2.5">${hlVisits.map((h) => `
-        <div class="flex items-center gap-2 group/hl">
-          <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-          <span class="text-[0.65rem] text-gray-600 dark:text-gray-300 flex-1 truncate">${esc(h.name)}</span>
-          <span class="text-[0.55rem] text-gray-400">${h.date || ""}</span>
-          <button class="profile-remove-hl-btn opacity-0 group-hover/hl:opacity-100 w-5 h-5 flex items-center justify-center rounded text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" data-hl-name="${esc(h.name)}" title="Убрать">
-            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-        </div>`).join("")}</div>` : "";
+      const hlHtml = hlVisits.length ? `<div class="flex flex-col gap-1.5 mt-1.5 ml-5 border-l-2 border-amber-300/40 dark:border-amber-500/20 pl-2.5">${hlVisits.map((h) => {
+        const visits = h.visits || [];
+        const visitsHtml = visits.map((v, vi) =>
+          `<span class="inline-flex items-center gap-0.5"><span>${vi + 1}.</span> ${fmtDate(v)}<button class="profile-remove-hlv-btn ml-0.5 w-3.5 h-3.5 inline-flex items-center justify-center rounded text-red-400 hover:text-red-500 opacity-0 group-hover/hl:opacity-100 transition-opacity" data-city-id="${esc(id)}" data-hl-name="${esc(h.name)}" data-visit-idx="${vi}" title="Убрать"><svg class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg></button></span>`
+        ).join(", ");
+        return `<div class="flex flex-col gap-0.5 group/hl">
+          <div class="flex items-center gap-2">
+            <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span class="text-[0.65rem] text-gray-600 dark:text-gray-300 font-medium">${esc(h.name)}</span>
+            <span class="text-[0.5rem] text-gray-400">${visits.length > 1 ? visits.length + "×" : ""}</span>
+            <button class="profile-remove-hl-btn ml-auto opacity-0 group-hover/hl:opacity-100 w-5 h-5 flex items-center justify-center rounded text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all shrink-0" data-city-id="${esc(id)}" data-hl-name="${esc(h.name)}" title="Убрать все">
+              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="text-[0.55rem] text-gray-400 dark:text-gray-500 ml-5 leading-relaxed">${visitsHtml}</div>
+        </div>`;
+      }).join("")}</div>` : "";
       return `
         <div class="flex flex-col p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group">
           <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full shrink-0 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
             <div class="flex flex-col gap-0.5 min-w-0 flex-1">
               <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">${esc(name)}</span>
-              <span class="text-[0.65rem] text-gray-400">${count > 1 ? count + " раз" : "1 раз"}${date ? " · " + date : ""}${hlVisits.length ? ` · ${hlVisits.length} мест` : ""}</span>
+              <span class="text-[0.65rem] text-gray-400">${count > 1 ? count + " раз" : "1 раз"}${date ? " · " + fmtDate(date) : ""}${hlVisits.length ? ` · ${hlVisits.length} мест` : ""}</span>
             </div>
             <button class="profile-remove-btn opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" title="Убрать">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -846,6 +923,10 @@
         e.stopPropagation();
         const cityId = btn.getAttribute("data-city-id");
         if (!cityId) return;
+        if (app.hasVisitedHighlights?.(cityId)) {
+          _showToast("Сначала уберите посещённые места в этом городе");
+          return;
+        }
         await app.toggleVisited(cityId);
         renderVisitedMarkers();
         renderPOIMarkers();
@@ -862,6 +943,21 @@
         if (!cityId || !hlName) return;
         await app.removeHighlightVisit(cityId, hlName);
         renderPOIMarkers();
+        updateVisitedUI();
+        fillProfile();
+      });
+    });
+
+    list.querySelectorAll(".profile-remove-hlv-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const cityId = btn.getAttribute("data-city-id");
+        const hlName = btn.getAttribute("data-hl-name");
+        const idx = parseInt(btn.getAttribute("data-visit-idx"), 10);
+        if (!cityId || !hlName || isNaN(idx)) return;
+        await app.removeHighlightVisitByIndex(cityId, hlName, idx);
+        renderPOIMarkers();
+        updateVisitedUI();
         fillProfile();
       });
     });
@@ -928,13 +1024,12 @@
     return `~${Math.round(km)} км · ~${h}ч ${m}мин`;
   }
 
-  function _segmentHTML(fromName, toName, km) {
-    const from = encodeURIComponent(fromName + ", Беларусь");
-    const to = encodeURIComponent(toName + ", Беларусь");
+  function _segmentHTML(fromName, toName, km, fromLat, fromLon, toLat, toLon) {
+    const yandexUrl = `https://yandex.ru/maps/?rtext=${fromLat},${fromLon}~${toLat},${toLon}&rtt=auto`;
     return `<div class="flex items-center gap-1.5 py-1 px-2 text-[0.6rem] text-gray-400 dark:text-gray-500">
       <svg class="w-3 h-3 shrink-0 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>
       <span>${_fmtDist(km)}</span>
-      <a href="https://www.google.com/maps/dir/${from}/${to}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">маршрут</a>
+      <a href="${yandexUrl}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-500 underline underline-offset-2">маршрут</a>
     </div>`;
   }
 
@@ -964,14 +1059,16 @@
       const prevLon = i === 0 ? startLon : route[i - 1].lon;
       const prevName = i === 0 ? homeName : route[i - 1].name;
       const segKm = haversine(prevLat, prevLon, c.lat, c.lon);
-      html += _segmentHTML(prevName, c.name, segKm);
+      html += _segmentHTML(prevName, c.name, segKm, prevLat, prevLon, c.lat, c.lon);
 
       const isPlace = allPlaces.some((p) => p.id === c.id);
       const desc = c.desc || c.about || "";
       const rawHl = (c.highlights || []).map((h) => typeof h === "string" ? { name: h, tags: [] } : h);
-      const routeUserTags = new Set(window.wbApp?.getInterests() || []);
+      const routeApp = window.wbApp;
+      const routeUserTags = new Set(routeApp?.getInterests() || []);
       const hasInterests = routeUserTags.size > 0;
-      const filteredHl = hasInterests ? rawHl.filter((h) => (h.tags || []).some((t) => routeUserTags.has(t))) : rawHl;
+      const unvisitedHl = rawHl.filter((h) => !routeApp?.isHighlightVisited?.(c.id, h.name));
+      const filteredHl = hasInterests ? unvisitedHl.filter((h) => (h.tags || []).some((t) => routeUserTags.has(t))) : unvisitedHl;
       const visibleHl = filteredHl.slice(0, 4);
       html += `<div class="route-item flex items-start gap-2.5 p-2 rounded-lg bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" data-place-id="${esc(c.id)}">
         <div class="flex flex-col items-center gap-0.5 pt-0.5">
@@ -993,7 +1090,7 @@
     if (_routeRoundTrip && route.length > 0) {
       const last = route[route.length - 1];
       const retKm = haversine(last.lat, last.lon, startLat, startLon);
-      html += _segmentHTML(last.name, homeName, retKm);
+      html += _segmentHTML(last.name, homeName, retKm, last.lat, last.lon, startLat, startLon);
       html += `<div class="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-500/10">
         <svg class="w-3.5 h-3.5 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 3v6h6"/></svg>
         <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">Возвращение домой</span>
@@ -1106,10 +1203,12 @@
       if (!_currentCityId) return;
       const app = window.wbApp;
       if (!app) return;
+      const dateStr = await _openVisitDateModal();
+      if (!dateStr) return;
       if (app.isVisited(_currentCityId)) {
-        await app.incrementVisited(_currentCityId);
+        await app.incrementVisited(_currentCityId, dateStr);
       } else {
-        await app.toggleVisited(_currentCityId);
+        await app.toggleVisited(_currentCityId, dateStr);
       }
       updateVisitedUI();
       renderVisitedMarkers();
@@ -1120,6 +1219,10 @@
       if (!_currentCityId) return;
       const app = window.wbApp;
       if (!app || !app.isVisited(_currentCityId)) return;
+      if (app.hasVisitedHighlights?.(_currentCityId)) {
+        _showToast("Сначала уберите посещённые места в этом городе");
+        return;
+      }
       await app.toggleVisited(_currentCityId);
       updateVisitedUI();
       renderVisitedMarkers();
@@ -1301,6 +1404,8 @@
     const weatherTab = document.getElementById("tab-weather");
     if (infoTab) infoTab.classList.toggle("hidden", tab !== "info");
     if (weatherTab) weatherTab.classList.toggle("hidden", tab !== "weather");
+    const panel = document.getElementById("detail-panel");
+    if (panel) panel.scrollTop = 0;
     document.querySelectorAll(".detail-tab").forEach((btn) => {
       const isActive = btn.getAttribute("data-tab") === tab;
       btn.classList.toggle("bg-white", isActive);
@@ -1362,30 +1467,58 @@
     cityEl.textContent = cityName;
 
     const app = window.wbApp;
-    function setVisitBtnStyle(btn, isVisited) {
-      if (!btn) return;
-      if (isVisited) {
-        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-amber-500/15 text-amber-600 dark:text-amber-400";
-        btn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg><span>Посещено</span>`;
+    const deleteBtn = document.getElementById("hl-modal-delete-btn");
+
+    function updateHlModalButtons(vBtn) {
+      if (!vBtn) return;
+      const count = app?.getHighlightVisitCount?.(cityId, item.name) || 0;
+      if (count > 0) {
+        vBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-amber-500/15 text-amber-600 dark:text-amber-400";
+        vBtn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span>Ещё раз (${count})</span>`;
+        deleteBtn?.classList.remove("hidden");
+        deleteBtn?.classList.add("flex");
       } else {
-        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-teal-500/15 text-teal-600 dark:text-teal-400 hover:bg-teal-500/25";
-        btn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span>Я тут был</span>`;
+        vBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-teal-500/15 text-teal-600 dark:text-teal-400 hover:bg-teal-500/25";
+        vBtn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span>Я тут был</span>`;
+        deleteBtn?.classList.add("hidden");
+        deleteBtn?.classList.remove("flex");
       }
     }
-    setVisitBtnStyle(visitBtn, app?.isHighlightVisited?.(cityId, item.name));
+    updateHlModalButtons(visitBtn);
 
     const newBtn = visitBtn.cloneNode(false);
     newBtn.id = "hl-modal-visit-btn";
-    setVisitBtnStyle(newBtn, app?.isHighlightVisited?.(cityId, item.name));
+    updateHlModalButtons(newBtn);
     visitBtn.replaceWith(newBtn);
-    newBtn.addEventListener("click", async () => {
-      if (!app?.toggleHighlightVisited) return;
-      await app.toggleHighlightVisited(cityId, item.name);
-      setVisitBtnStyle(newBtn, app.isHighlightVisited?.(cityId, item.name));
+
+    const refreshAfterChange = () => {
+      updateHlModalButtons(newBtn);
       renderVisitedMarkers();
       renderPOIMarkers();
       updateVisitedUI();
+      const allC = getAllCities();
+      const allP = getPlaces();
+      const cObj = [...allC, ...allP].find((c) => c.id === cityId);
+      if (cObj) fillCityMeta(cObj, cityId);
+    };
+
+    newBtn.addEventListener("click", async () => {
+      if (!app?.addHighlightVisit) return;
+      const dateStr = await _openVisitDateModal();
+      if (!dateStr) return;
+      await app.addHighlightVisit(cityId, item.name, dateStr);
+      refreshAfterChange();
     });
+
+    const newDelBtn = deleteBtn?.cloneNode(true);
+    if (deleteBtn && newDelBtn) {
+      deleteBtn.replaceWith(newDelBtn);
+      newDelBtn.addEventListener("click", async () => {
+        if (!app?.removeHighlightVisit) return;
+        await app.removeHighlightVisit(cityId, item.name);
+        refreshAfterChange();
+      });
+    }
 
     overlay.classList.remove("hidden");
     modal.classList.remove("hidden");
@@ -1405,16 +1538,26 @@
   }
 
 
-  function setHighlightsFilterUI(mode, hasInterestFilter) {
+  function setHighlightsFilterUI(mode, hasInterestFilter, hasVisited) {
     const wrap = document.getElementById("city-highlights-filter");
     const allBtn = document.getElementById("city-highlights-all");
     const interestBtn = document.getElementById("city-highlights-interest");
-    if (!wrap || !allBtn || !interestBtn) return;
+    const visitedBtn = document.getElementById("city-highlights-visited");
+    if (!wrap || !allBtn) return;
 
-    wrap.classList.toggle("hidden", !hasInterestFilter);
-    wrap.classList.toggle("flex", hasInterestFilter);
+    const showFilter = hasInterestFilter || hasVisited;
+    wrap.classList.toggle("hidden", !showFilter);
+    wrap.classList.toggle("flex", showFilter);
+
+    if (interestBtn) {
+      interestBtn.classList.toggle("hidden", !hasInterestFilter);
+    }
+    if (visitedBtn) {
+      visitedBtn.classList.toggle("hidden", !hasVisited);
+    }
 
     const paint = (btn, active) => {
+      if (!btn) return;
       btn.classList.toggle("bg-white", active);
       btn.classList.toggle("dark:bg-white/15", active);
       btn.classList.toggle("text-gray-700", active);
@@ -1425,6 +1568,7 @@
     };
     paint(allBtn, mode === "all");
     paint(interestBtn, mode === "interest");
+    paint(visitedBtn, mode === "visited");
   }
 
   async function fillCityMeta(city, photoKey = null) {
@@ -1455,13 +1599,16 @@
       hlWrap.classList.remove("hidden");
       const userTags = new Set(window.wbApp?.getInterests() || []);
       const hasInterestFilter = userTags.size > 0;
-      if (!hasInterestFilter) _cityHighlightsFilter = "all";
-      if (hasInterestFilter && _cityHighlightsFilter !== "interest" && _cityHighlightsFilter !== "all") {
-        _cityHighlightsFilter = "interest";
-      }
-      if (hasInterestFilter && _cityHighlightsFilter === "all") {
-      } else if (hasInterestFilter) {
-        _cityHighlightsFilter = "interest";
+      const app = window.wbApp;
+
+      const visitedHighlights = highlights.filter((item) => app?.isHighlightVisited?.(city.id, item.name));
+      const hasVisited = visitedHighlights.length > 0;
+
+      const validFilters = ["all"];
+      if (hasInterestFilter) validFilters.push("interest");
+      if (hasVisited) validFilters.push("visited");
+      if (!validFilters.includes(_cityHighlightsFilter)) {
+        _cityHighlightsFilter = hasInterestFilter ? "interest" : "all";
       }
 
       const orderedHighlights = [...highlights].sort((a, b) => {
@@ -1469,33 +1616,55 @@
         if (scoreDiff !== 0) return scoreDiff;
         return a._idx - b._idx;
       });
+
+      const sortVisitedDown = (list) => {
+        return [...list].sort((a, b) => {
+          const aV = app?.isHighlightVisited?.(city.id, a.name) ? 1 : 0;
+          const bV = app?.isHighlightVisited?.(city.id, b.name) ? 1 : 0;
+          return aV - bV;
+        });
+      };
+
       const matchedOnly = orderedHighlights.filter((item) => getHighlightMatchScore(item, userTags) > 0);
       const hasMatches = hasInterestFilter && matchedOnly.length > 0;
-      const visibleHighlights = hasInterestFilter && _cityHighlightsFilter === "interest" && hasMatches
-        ? matchedOnly
-        : orderedHighlights;
+
+      let visibleHighlights;
+      if (_cityHighlightsFilter === "visited") {
+        visibleHighlights = visitedHighlights;
+      } else if (_cityHighlightsFilter === "interest" && hasMatches) {
+        visibleHighlights = sortVisitedDown(matchedOnly);
+      } else {
+        visibleHighlights = sortVisitedDown(orderedHighlights);
+      }
+
       const index = await _loadPhotosIndex();
       const entry = index[city.id] || index[photoKey] || {};
       const hlPhotosMap = entry.highlights || {};
       if (_currentCityId !== city.id) return;
 
       if (hlTitle) {
-        hlTitle.textContent = hasInterestFilter && _cityHighlightsFilter === "interest" && hasMatches
-          ? "Что посетить (интересы)"
-          : "Что посетить";
+        if (_cityHighlightsFilter === "visited") hlTitle.textContent = "Посещённые";
+        else if (_cityHighlightsFilter === "interest" && hasMatches) hlTitle.textContent = "Интересы";
+        else hlTitle.textContent = "Что посетить";
       }
-      setHighlightsFilterUI(_cityHighlightsFilter, hasInterestFilter);
+      setHighlightsFilterUI(_cityHighlightsFilter, hasInterestFilter, hasVisited);
 
       const allBtn = document.getElementById("city-highlights-all");
       const interestBtn = document.getElementById("city-highlights-interest");
+      const visitedFilterBtn = document.getElementById("city-highlights-visited");
       allBtn?.replaceWith(allBtn.cloneNode(true));
       interestBtn?.replaceWith(interestBtn.cloneNode(true));
+      visitedFilterBtn?.replaceWith(visitedFilterBtn.cloneNode(true));
       document.getElementById("city-highlights-all")?.addEventListener("click", () => {
         _cityHighlightsFilter = "all";
         fillCityMeta(city, photoKey);
       });
       document.getElementById("city-highlights-interest")?.addEventListener("click", () => {
         _cityHighlightsFilter = "interest";
+        fillCityMeta(city, photoKey);
+      });
+      document.getElementById("city-highlights-visited")?.addEventListener("click", () => {
+        _cityHighlightsFilter = "visited";
         fillCityMeta(city, photoKey);
       });
 
@@ -1505,11 +1674,12 @@
         const visibleTags = item.tags.slice(0, 3);
         const photo = hlPhotosMap[item.name] || "";
         const hlVisited = window.wbApp?.isHighlightVisited?.(city.id, item.name);
+        const hlCount = window.wbApp?.getHighlightVisitCount?.(city.id, item.name) || 0;
         return `
           <div class="hl-card flex gap-2.5 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${hlVisited ? "bg-amber-50/50 dark:bg-amber-500/5 ring-1 ring-amber-300/50 dark:ring-amber-500/20" : matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
             <div class="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
               ${photo ? "" : `<svg class="w-5 h-5 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
-              ${hlVisited ? `<div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>` : ""}
+              ${hlVisited ? `<div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[0.5rem] font-bold text-white">${hlCount > 1 ? hlCount : `<svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>`}</div>` : ""}
             </div>
             <div class="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
               <span class="text-[0.8rem] leading-snug font-semibold ${hlVisited ? "text-amber-700 dark:text-amber-300" : matched ? "text-teal-700 dark:text-teal-300" : "text-gray-700 dark:text-gray-200"}">${esc(item.name)}</span>
@@ -1922,7 +2092,7 @@
       const rect = wrap.getBoundingClientRect();
       const mx = e.clientX - rect.left - rect.width / 2;
       const my = e.clientY - rect.top - rect.height / 2;
-      const factor = e.deltaY > 0 ? 0.85 : 1.18;
+      const factor = e.deltaY > 0 ? 0.95 : 1.05;
       const newScale = Math.min(6, Math.max(0.5, scale * factor));
       const ratio = newScale / scale;
       tx = mx - ratio * (mx - tx);
