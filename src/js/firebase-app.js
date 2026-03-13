@@ -27,8 +27,11 @@ async function idbGet() {
   return new Promise((resolve) => {
     const tx = idb.transaction(IDB_STORE, "readonly");
     const req = tx.objectStore(IDB_STORE).get(IDB_KEY);
-    req.onsuccess = () => resolve(req.result || { visited: {} });
-    req.onerror = () => resolve({ visited: {} });
+    req.onsuccess = () => {
+      const r = req.result || {};
+      resolve({ visited: r.visited || {}, visitedHighlights: r.visitedHighlights || {}, ...r });
+    };
+    req.onerror = () => resolve({ visited: {}, visitedHighlights: {} });
   });
 }
 
@@ -42,7 +45,7 @@ async function idbSet(data) {
 }
 
 let _user = null;
-let _data = { visited: {} };
+let _data = { visited: {}, visitedHighlights: {} };
 const _listeners = new Set();
 
 function notify() {
@@ -63,7 +66,7 @@ async function saveToFirestore(uid, data) {
 
 async function mergeCloudAndLocal(uid) {
   const [local, cloud] = await Promise.all([idbGet(), loadFromFirestore(uid)]);
-  const merged = { visited: { ...cloud?.visited, ...local.visited } };
+  const merged = { visited: { ...cloud?.visited, ...local.visited }, visitedHighlights: {} };
   if (local.home) merged.home = local.home;
   else if (cloud?.home) merged.home = cloud.home;
   if (local.route) merged.route = local.route;
@@ -81,6 +84,20 @@ async function mergeCloudAndLocal(uid) {
       };
     }
   }
+
+  const localHL = local.visitedHighlights || {};
+  const cloudHL = cloud?.visitedHighlights || {};
+  const allHLKeys = new Set([...Object.keys(localHL), ...Object.keys(cloudHL)]);
+  for (const key of allHLKeys) {
+    const l = localHL[key];
+    const c = cloudHL[key];
+    if (l && c) {
+      merged.visitedHighlights[key] = { date: l.date < c.date ? l.date : c.date };
+    } else {
+      merged.visitedHighlights[key] = l || c;
+    }
+  }
+
   _data = merged;
   await Promise.all([idbSet(merged), saveToFirestore(uid, merged)]);
   notify();
@@ -190,6 +207,61 @@ window.wbApp = {
   },
 
   getInterests() { return _data.interests || null; },
+
+  async toggleHighlightVisited(cityId, hlName) {
+    const key = cityId + "::" + hlName;
+    const today = new Date().toISOString().slice(0, 10);
+    if (!_data.visitedHighlights) _data.visitedHighlights = {};
+    if (_data.visitedHighlights[key]) {
+      delete _data.visitedHighlights[key];
+      await idbSet(_data);
+      if (_user) {
+        await setDoc(doc(db, "users", _user.uid), {
+          visitedHighlights: { [key]: deleteField() }
+        }, { merge: true });
+      }
+    } else {
+      _data.visitedHighlights[key] = { date: today };
+      if (!_data.visited[cityId]) {
+        _data.visited[cityId] = { count: 1, firstVisit: today, lastVisit: today };
+      }
+      await idbSet(_data);
+      if (_user) await saveToFirestore(_user.uid, _data);
+    }
+    notify();
+  },
+
+  isHighlightVisited(cityId, hlName) {
+    return !!(_data.visitedHighlights || {})[cityId + "::" + hlName];
+  },
+
+  getVisitedHighlights() {
+    return _data.visitedHighlights || {};
+  },
+
+  getVisitedHighlightsForCity(cityId) {
+    const result = [];
+    const prefix = cityId + "::";
+    for (const [key, val] of Object.entries(_data.visitedHighlights || {})) {
+      if (key.startsWith(prefix)) {
+        result.push({ name: key.slice(prefix.length), date: val.date });
+      }
+    }
+    return result;
+  },
+
+  async removeHighlightVisit(cityId, hlName) {
+    const key = cityId + "::" + hlName;
+    if (!_data.visitedHighlights?.[key]) return;
+    delete _data.visitedHighlights[key];
+    await idbSet(_data);
+    if (_user) {
+      await setDoc(doc(db, "users", _user.uid), {
+        visitedHighlights: { [key]: deleteField() }
+      }, { merge: true });
+    }
+    notify();
+  },
 
   async requestGeolocation() {
     return new Promise((resolve) => {

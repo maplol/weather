@@ -816,16 +816,28 @@
       const count = info?.count || 1;
       const date = info?.lastVisit || "";
       const isPlace = allPlaces.some((p) => p.id === id);
-      return `
-        <div class="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group">
-          <div class="w-3 h-3 rounded-full shrink-0 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
-          <div class="flex flex-col gap-0.5 min-w-0 flex-1">
-            <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">${esc(name)}</span>
-            <span class="text-[0.65rem] text-gray-400">${count > 1 ? count + " раз" : "1 раз"}${date ? " · " + date : ""}</span>
-          </div>
-          <button class="profile-remove-btn opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" title="Убрать">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      const hlVisits = app.getVisitedHighlightsForCity?.(id) || [];
+      const hlHtml = hlVisits.length ? `<div class="flex flex-col gap-1 mt-1.5 ml-5 border-l-2 border-amber-300/40 dark:border-amber-500/20 pl-2.5">${hlVisits.map((h) => `
+        <div class="flex items-center gap-2 group/hl">
+          <svg class="w-3 h-3 text-amber-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+          <span class="text-[0.65rem] text-gray-600 dark:text-gray-300 flex-1 truncate">${esc(h.name)}</span>
+          <span class="text-[0.55rem] text-gray-400">${h.date || ""}</span>
+          <button class="profile-remove-hl-btn opacity-0 group-hover/hl:opacity-100 w-5 h-5 flex items-center justify-center rounded text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" data-hl-name="${esc(h.name)}" title="Убрать">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
+        </div>`).join("")}</div>` : "";
+      return `
+        <div class="flex flex-col p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group">
+          <div class="flex items-center gap-3">
+            <div class="w-3 h-3 rounded-full shrink-0 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
+            <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+              <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">${esc(name)}</span>
+              <span class="text-[0.65rem] text-gray-400">${count > 1 ? count + " раз" : "1 раз"}${date ? " · " + date : ""}${hlVisits.length ? ` · ${hlVisits.length} мест` : ""}</span>
+            </div>
+            <button class="profile-remove-btn opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all" data-city-id="${esc(id)}" title="Убрать">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>${hlHtml}
         </div>`;
     }).join("");
 
@@ -838,6 +850,18 @@
         renderVisitedMarkers();
         renderPOIMarkers();
         updateVisitedUI();
+        fillProfile();
+      });
+    });
+
+    list.querySelectorAll(".profile-remove-hl-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const cityId = btn.getAttribute("data-city-id");
+        const hlName = btn.getAttribute("data-hl-name");
+        if (!cityId || !hlName) return;
+        await app.removeHighlightVisit(cityId, hlName);
+        renderPOIMarkers();
         fillProfile();
       });
     });
@@ -944,7 +968,11 @@
 
       const isPlace = allPlaces.some((p) => p.id === c.id);
       const desc = c.desc || c.about || "";
-      const hl = c.highlights || [];
+      const rawHl = (c.highlights || []).map((h) => typeof h === "string" ? { name: h, tags: [] } : h);
+      const routeUserTags = new Set(window.wbApp?.getInterests() || []);
+      const hasInterests = routeUserTags.size > 0;
+      const filteredHl = hasInterests ? rawHl.filter((h) => (h.tags || []).some((t) => routeUserTags.has(t))) : rawHl;
+      const visibleHl = filteredHl.slice(0, 4);
       html += `<div class="route-item flex items-start gap-2.5 p-2 rounded-lg bg-gray-50 dark:bg-white/5 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" data-place-id="${esc(c.id)}">
         <div class="flex flex-col items-center gap-0.5 pt-0.5">
           <span class="text-[0.6rem] font-bold text-blue-500">${i + 1}</span>
@@ -953,7 +981,10 @@
         <div class="flex flex-col gap-0.5 min-w-0 flex-1">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${esc(c.name)}</span>
           ${desc ? `<span class="text-[0.6rem] text-gray-400 leading-tight">${esc(desc.slice(0, 80))}${desc.length > 80 ? "…" : ""}</span>` : ""}
-          ${hl.length ? `<div class="flex flex-wrap gap-1 mt-0.5">${hl.slice(0, 3).map((h) => `<span class="text-[0.55rem] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">${esc(typeof h === "string" ? h : h.name || "")}</span>`).join("")}</div>` : ""}
+          ${visibleHl.length ? `<div class="flex flex-wrap gap-1 mt-0.5">${visibleHl.map((h) => {
+            const chipMatch = hasInterests && (h.tags || []).some((t) => routeUserTags.has(t));
+            return `<span class="text-[0.55rem] px-1.5 py-0.5 rounded ${chipMatch ? "bg-teal-500/15 text-teal-600 dark:text-teal-400 font-medium" : "bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400"}">${esc(h.name || "")}</span>`;
+          }).join("")}${filteredHl.length > 4 ? `<span class="text-[0.55rem] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-400">+${filteredHl.length - 4}</span>` : ""}</div>` : ""}
         </div>
         <div class="w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
       </div>`;
@@ -1295,21 +1326,30 @@
     return { name: item.name || "", desc: item.desc || "", tags: item.tags || ["history"] };
   }
 
-  function showHighlightModal(item, photo, cityName) {
+  function showHighlightModal(item, photo, cityName, cityId) {
     const overlay = document.getElementById("hl-modal-overlay");
     const modal = document.getElementById("hl-modal");
     if (!overlay || !modal) return;
-    const photoEl = document.getElementById("hl-modal-photo");
+    const photoWrap = document.getElementById("hl-modal-photo");
+    const blurEl = document.getElementById("hl-modal-photo-blur");
+    const imgEl = document.getElementById("hl-modal-photo-img");
     const nameEl = document.getElementById("hl-modal-name");
     const descEl = document.getElementById("hl-modal-desc");
     const tagsEl = document.getElementById("hl-modal-tags");
     const cityEl = document.getElementById("hl-modal-city");
+    const visitBtn = document.getElementById("hl-modal-visit-btn");
+
     if (photo) {
-      photoEl.style.backgroundImage = `url('${photo}')`;
-      photoEl.classList.remove("hidden");
+      blurEl.style.backgroundImage = `url('${photo}')`;
+      imgEl.src = photo;
+      imgEl.classList.remove("hidden");
+      blurEl.classList.remove("hidden");
+      photoWrap.classList.remove("hidden");
     } else {
-      photoEl.style.backgroundImage = "";
-      photoEl.classList.add("hidden");
+      imgEl.src = "";
+      imgEl.classList.add("hidden");
+      blurEl.classList.add("hidden");
+      photoWrap.classList.add("hidden");
     }
     nameEl.textContent = item.name;
     descEl.textContent = item.desc || "";
@@ -1320,6 +1360,33 @@
       return `<span class="text-xs px-2 py-1 rounded-lg font-medium ${m ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"}">${esc(TAG_LABELS[t] || t)}</span>`;
     }).join("");
     cityEl.textContent = cityName;
+
+    const app = window.wbApp;
+    function setVisitBtnStyle(btn, isVisited) {
+      if (!btn) return;
+      if (isVisited) {
+        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-amber-500/15 text-amber-600 dark:text-amber-400";
+        btn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg><span>Посещено</span>`;
+      } else {
+        btn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95 bg-teal-500/15 text-teal-600 dark:text-teal-400 hover:bg-teal-500/25";
+        btn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg><span>Я тут был</span>`;
+      }
+    }
+    setVisitBtnStyle(visitBtn, app?.isHighlightVisited?.(cityId, item.name));
+
+    const newBtn = visitBtn.cloneNode(false);
+    newBtn.id = "hl-modal-visit-btn";
+    setVisitBtnStyle(newBtn, app?.isHighlightVisited?.(cityId, item.name));
+    visitBtn.replaceWith(newBtn);
+    newBtn.addEventListener("click", async () => {
+      if (!app?.toggleHighlightVisited) return;
+      await app.toggleHighlightVisited(cityId, item.name);
+      setVisitBtnStyle(newBtn, app.isHighlightVisited?.(cityId, item.name));
+      renderVisitedMarkers();
+      renderPOIMarkers();
+      updateVisitedUI();
+    });
+
     overlay.classList.remove("hidden");
     modal.classList.remove("hidden");
     const close = () => {
@@ -1437,13 +1504,15 @@
         const matched = matchScore > 0;
         const visibleTags = item.tags.slice(0, 3);
         const photo = hlPhotosMap[item.name] || "";
+        const hlVisited = window.wbApp?.isHighlightVisited?.(city.id, item.name);
         return `
-          <div class="hl-card flex gap-2.5 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
-            <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
+          <div class="hl-card flex gap-2.5 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${hlVisited ? "bg-amber-50/50 dark:bg-amber-500/5 ring-1 ring-amber-300/50 dark:ring-amber-500/20" : matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
+            <div class="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
               ${photo ? "" : `<svg class="w-5 h-5 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
+              ${hlVisited ? `<div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center"><svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>` : ""}
             </div>
             <div class="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
-              <span class="text-[0.8rem] leading-snug font-semibold ${matched ? "text-teal-700 dark:text-teal-300" : "text-gray-700 dark:text-gray-200"}">${esc(item.name)}</span>
+              <span class="text-[0.8rem] leading-snug font-semibold ${hlVisited ? "text-amber-700 dark:text-amber-300" : matched ? "text-teal-700 dark:text-teal-300" : "text-gray-700 dark:text-gray-200"}">${esc(item.name)}</span>
               ${item.desc ? `<span class="text-[0.65rem] leading-snug text-gray-500 dark:text-gray-400 line-clamp-2">${esc(item.desc)}</span>` : ""}
               <div class="flex flex-wrap gap-1 mt-0.5">
                 ${visibleTags.map((tag) => `<span class="text-[0.55rem] leading-none px-1.5 py-[3px] rounded ${userTags.has(tag) ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500"}">${esc(TAG_LABELS[tag] || tag)}</span>`).join("")}
@@ -1457,7 +1526,7 @@
         card.addEventListener("click", () => {
           const idx = parseInt(card.getAttribute("data-hl-idx"), 10);
           const item = visibleHighlights[idx];
-          if (item) showHighlightModal(item, hlPhotosMap[item.name] || "", city.name);
+          if (item) showHighlightModal(item, hlPhotosMap[item.name] || "", city.name, city.id);
         });
       });
     } else {

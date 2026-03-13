@@ -273,9 +273,11 @@
 	</div>
 
 	<div id="hl-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[400] hidden"></div>
-	<div id="hl-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,92vw)] max-h-[80dvh] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[401] overflow-hidden hidden flex flex-col">
-		<div id="hl-modal-photo" class="w-full h-48 bg-gray-200 dark:bg-white/10 bg-cover bg-center relative shrink-0">
-			<button id="hl-modal-close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors" aria-label="Закрыть">
+	<div id="hl-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,92vw)] max-h-[85dvh] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[401] overflow-hidden hidden flex flex-col">
+		<div id="hl-modal-photo" class="w-full h-64 relative shrink-0 overflow-hidden bg-gray-200 dark:bg-white/10">
+			<div id="hl-modal-photo-blur" class="absolute inset-0 bg-cover bg-center scale-110 blur-xl opacity-60"></div>
+			<img id="hl-modal-photo-img" class="relative w-full h-full object-contain z-10" alt="">
+			<button id="hl-modal-close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors z-20" aria-label="Закрыть">
 				<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
 			</button>
 		</div>
@@ -283,7 +285,10 @@
 			<h3 id="hl-modal-name" class="text-base font-bold text-gray-800 dark:text-white leading-snug"></h3>
 			<p id="hl-modal-desc" class="text-sm leading-relaxed text-gray-600 dark:text-gray-300"></p>
 			<div id="hl-modal-tags" class="flex flex-wrap gap-1.5"></div>
-			<p id="hl-modal-city" class="text-xs text-gray-400 dark:text-gray-500"></p>
+			<div class="flex items-center justify-between">
+				<p id="hl-modal-city" class="text-xs text-gray-400 dark:text-gray-500"></p>
+				<button id="hl-modal-visit-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"></button>
+			</div>
 		</div>
 	</div>
 
