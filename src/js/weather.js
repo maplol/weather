@@ -847,11 +847,9 @@
       const regions = countries[currentCountry]?.regions || [];
       for (const region of regions) {
         if (region.cities?.some((c) => c.id === placeId)) {
+          const pathEl = document.querySelector(`path.city-district[data-city-id="${placeId}"]`);
+          if (pathEl && _zoomToPath) _zoomToPath(pathEl);
           onCityClick(city, region.id);
-          requestAnimationFrame(() => {
-            const pathEl = document.querySelector(`path.city-district[data-city-id="${placeId}"]`);
-            if (pathEl && _zoomToPath) _zoomToPath(pathEl);
-          });
           return;
         }
       }
@@ -908,6 +906,7 @@
     overlay?.setAttribute("data-visible", "true");
     overlay?.setAttribute("aria-hidden", "false");
     fillProfile();
+    setTimeout(() => startProfileTour(), 500);
   }
 
   function closeProfile() {
@@ -983,7 +982,7 @@
         </div>`;
       }).join("")}</div>` : "";
       return `
-        <div class="flex flex-col p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group">
+        <div class="profile-city-card flex flex-col p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 group cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors" data-city-id="${esc(id)}">
           <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full shrink-0 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
             <div class="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -1038,6 +1037,15 @@
         renderPOIMarkers();
         updateVisitedUI();
         fillProfile();
+      });
+    });
+
+    list.querySelectorAll(".profile-city-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = card.getAttribute("data-city-id");
+        if (!id) return;
+        closeProfile();
+        focusOnPlace(id);
       });
     });
   }
@@ -1357,6 +1365,12 @@
           renderRouteUI(_currentRoute, home?.lat ?? 53.9, home?.lon ?? 27.56, getPlaces());
         }
       });
+    });
+
+    document.getElementById("restart-tour-btn")?.addEventListener("click", () => {
+      Object.values(_tourKeys).forEach((k) => localStorage.removeItem(k));
+      closeProfile();
+      setTimeout(() => startMapTour(true), 400);
     });
   }
 
@@ -1855,6 +1869,8 @@
     } else {
       tagsWrap?.classList.add("hidden");
     }
+
+    setTimeout(() => startCityTour(), 600);
   }
 
   function trapFocus(e) {
@@ -2391,6 +2407,78 @@
     };
   }
 
+  const _tourKeys = { map: "wb_tour_map", city: "wb_tour_city", profile: "wb_tour_profile" };
+  const _isMobile = () => window.innerWidth < 640;
+  const _driverFn = () => window.driver?.js?.driver;
+
+  function _driverOpts(extra) {
+    return Object.assign({
+      popoverClass: "wb-tour",
+      stagePadding: 8,
+      stageRadius: _isMobile() ? 4 : 8,
+      animate: true,
+      overlayColor: "rgba(0,0,0,0.55)",
+      showProgress: true,
+      progressText: "{{current}} / {{total}}",
+      nextBtnText: "Далее",
+      prevBtnText: "Назад",
+      doneBtnText: "Готово",
+    }, extra);
+  }
+
+  function startMapTour(force) {
+    if (!force && localStorage.getItem(_tourKeys.map)) return;
+    const driverCreate = _driverFn();
+    if (!driverCreate) return;
+    const d = driverCreate(_driverOpts({
+      onDestroyed: () => localStorage.setItem(_tourKeys.map, "1"),
+      steps: [
+        { element: "#svg-wrap", popover: { title: "Карта Беларуси", description: "Добро пожаловать в WBelarus! Перед вами интерактивная карта. Нажмите на любой город, чтобы узнать погоду, достопримечательности и построить маршрут.", side: _isMobile() ? "bottom" : "right", align: "center" }},
+        { element: "#auth-wrap", popover: { title: "Вход в аккаунт", description: "Войдите через Google — отмечайте посещённые места, выбирайте интересы. Данные синхронизируются между всеми устройствами.", side: "bottom", align: "start" }},
+        { element: "#theme-toggle", popover: { title: "Тема оформления", description: "Переключайте между светлой и тёмной темой.", side: "right", align: "center" }},
+        { popover: { title: "Навигация по карте", description: "Приближайте карту колёсиком мыши или жестами. Кликайте по городам — и вперёд к исследованиям!" }},
+      ]
+    }));
+    d.drive();
+  }
+
+  function startCityTour(force) {
+    if (!force && localStorage.getItem(_tourKeys.city)) return;
+    const driverCreate = _driverFn();
+    if (!driverCreate) return;
+    const hlEl = document.getElementById("city-highlights");
+    const hlVisible = hlEl && !hlEl.classList.contains("hidden");
+    const steps = [
+      { element: "#detail-panel", popover: { title: "Панель города", description: "Здесь собрано всё о выбранном городе: погода, фотографии, достопримечательности, рейтинг и теги.", side: _isMobile() ? "bottom" : "left", align: "center" }},
+      { element: "#detail-tabs", popover: { title: "Вкладки", description: "Переключайтесь между «Места» — информация и хайлайты, и «Погода» — прогноз на 10 дней.", side: "bottom", align: "center" }},
+    ];
+    if (hlVisible) {
+      steps.push({ element: "#city-highlights", popover: { title: "Достопримечательности", description: "Наведите мышь на карточку — увидите точку на карте. Нажмите — откроется подробное описание и ссылка на Яндекс Карты.", side: _isMobile() ? "bottom" : "left", align: "start" }});
+    }
+    const d = driverCreate(_driverOpts({
+      onDestroyed: () => localStorage.setItem(_tourKeys.city, "1"),
+      steps
+    }));
+    d.drive();
+  }
+
+  function startProfileTour(force) {
+    if (!force && localStorage.getItem(_tourKeys.profile)) return;
+    const driverCreate = _driverFn();
+    if (!driverCreate) return;
+    const d = driverCreate(_driverOpts({
+      onDestroyed: () => localStorage.setItem(_tourKeys.profile, "1"),
+      steps: [
+        { element: "#profile-header", popover: { title: "Ваш профиль", description: "Все данные привязаны к аккаунту Google и доступны на любом устройстве.", side: "bottom", align: "center" }},
+        { element: "#profile-stats", popover: { title: "Статистика", description: "Сколько городов вы уже посетили из общего количества на карте.", side: "bottom", align: "center" }},
+        { element: "#profile-visited-list", popover: { title: "Посещённые города", description: "Список мест, которые вы отметили. Нажмите — откроется город. Здесь же даты и количество визитов.", side: "bottom", align: "center" }},
+        { element: "#profile-interests-grid", popover: { title: "Мои интересы", description: "Выберите темы, которые вам интересны — подходящие достопримечательности будут выделены в каждом городе.", side: "bottom", align: "center" }},
+        { element: "#route-section", popover: { title: "Маршрут путешествия", description: "Автоматически строит маршрут через Яндекс Карты по непосещённым городам. Выбирайте «В одну сторону» или «+ Обратно».", side: "top", align: "center" }},
+      ]
+    }));
+    d.drive();
+  }
+
   function init() {
     document.documentElement.lang = "ru";
     document.querySelector(".detail-close")?.setAttribute("aria-label", tr("close"));
@@ -2497,6 +2585,11 @@
         }
 
         function updateHover(x, y) {
+          const els = document.elementsFromPoint(x, y);
+          if (els.some((el) => el.closest && el.closest("#hl-markers-focus"))) {
+            if (hoveredPath) { hoveredPath.classList.remove("hover"); hoveredPath = null; }
+            return;
+          }
           const path = findTarget(x, y);
           if (path) {
             const displayName = path.getAttribute("data-city-name") || path.getAttribute("data-region-name");
@@ -2752,6 +2845,7 @@
     setupProfile();
     setupDetailTabs();
     setTimeout(setupGeolocation, 2000);
+    setTimeout(() => startMapTour(), 1500);
   }
 
   if (document.readyState === "loading") {

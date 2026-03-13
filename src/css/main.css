@@ -227,3 +227,65 @@ html:not(.dark) #focus-svg .city-label {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0; }
 }
+
+.driver-popover.wb-tour {
+  font-family: "Manrope", system-ui, sans-serif;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #f0fdfa, #ecfeff);
+  border: 1px solid #99f6e4;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  padding: 1.25rem;
+}
+.dark .driver-popover.wb-tour {
+  background: linear-gradient(135deg, #1a2838, #1e293b);
+  border-color: rgba(94,234,212,0.2);
+  color: #e2e8f0;
+}
+.driver-popover.wb-tour .driver-popover-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0d9488;
+}
+.dark .driver-popover.wb-tour .driver-popover-title {
+  color: #5eead4;
+}
+.driver-popover.wb-tour .driver-popover-description {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #475569;
+}
+.dark .driver-popover.wb-tour .driver-popover-description {
+  color: #94a3b8;
+}
+.driver-popover.wb-tour .driver-popover-next-btn,
+.driver-popover.wb-tour .driver-popover-close-btn {
+  background: linear-gradient(135deg, #0d9488, #0284c7);
+  border: none;
+  border-radius: 0.75rem;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.45rem 1.1rem;
+  text-shadow: none;
+}
+.driver-popover.wb-tour .driver-popover-prev-btn {
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.45rem 1.1rem;
+  color: #64748b;
+}
+.dark .driver-popover.wb-tour .driver-popover-prev-btn {
+  color: #94a3b8;
+}
+.driver-popover.wb-tour .driver-popover-progress-text {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+@media (max-width: 639px) {
+  .driver-popover.wb-tour {
+    max-width: 88vw !important;
+    font-size: 0.85rem;
+    padding: 1rem;
+  }
+}
