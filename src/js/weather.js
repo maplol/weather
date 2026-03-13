@@ -74,7 +74,7 @@
   let _currentCitySecret = null;
 
   let _photosIndex = null;
-  const PHOTOS_PER_DAY = 5;
+
 
   async function _loadPhotosIndex() {
     if (_photosIndex) return _photosIndex;
@@ -178,18 +178,27 @@
 
   async function fetchCityPhotos(cityId) {
     const index = await _loadPhotosIndex();
-    const all = index[cityId] || [];
-    if (!all.length) return [];
+    const entry = index[cityId];
+    if (!entry) return [];
+    if (Array.isArray(entry)) return entry;
+    const cityPhotos = entry.city || [];
+    const hlPhotos = Object.values(entry.highlights || {});
+    return [...cityPhotos, ...hlPhotos];
+  }
 
-    const day = new Date().getDay();
-    if (all.length >= PHOTOS_PER_DAY * 7) {
-      return all.slice(day * PHOTOS_PER_DAY, day * PHOTOS_PER_DAY + PHOTOS_PER_DAY);
-    }
-    const result = [];
-    for (let i = 0; i < Math.min(PHOTOS_PER_DAY, all.length); i++) {
-      result.push(all[(day * PHOTOS_PER_DAY + i) % all.length]);
-    }
-    return result;
+  async function fetchHighlightPhoto(cityId, highlightName) {
+    const index = await _loadPhotosIndex();
+    const entry = index[cityId];
+    if (!entry || !entry.highlights) return "";
+    return entry.highlights[highlightName] || "";
+  }
+
+  async function fetchCitySliderPhotos(cityId) {
+    const index = await _loadPhotosIndex();
+    const entry = index[cityId];
+    if (!entry) return [];
+    if (Array.isArray(entry)) return entry;
+    return entry.city || [];
   }
 
   function iconUrl(code) {
@@ -625,7 +634,8 @@
       document.querySelector('.detail-tab[data-tab="weather"]')?.classList.add("hidden");
     }
 
-    fetchCityPhotos(place.id).then((photos) => {
+    fetchCitySliderPhotos(place.id).then(async (photos) => {
+      if (!photos.length) photos = await fetchCityPhotos(place.id);
       if (photos.length) {
         showPhotoSlider(photos);
         _applyPhotoTheme("photo");
@@ -683,7 +693,6 @@
     if (!item) return;
 
     closeProfile();
-    if (_clearMapFocus) _clearMapFocus();
 
     const city = allCities.find((c) => c.id === placeId);
     if (city) {
@@ -700,6 +709,7 @@
       }
     }
 
+    if (_clearMapFocus) _clearMapFocus();
     fillPlacePanel(item);
     if (_zoomCtrl) {
       const [cx, cy] = lngLatToSvg(item.lon, item.lat);
@@ -943,7 +953,7 @@
         <div class="flex flex-col gap-0.5 min-w-0 flex-1">
           <span class="text-xs font-semibold text-gray-700 dark:text-gray-200">${esc(c.name)}</span>
           ${desc ? `<span class="text-[0.6rem] text-gray-400 leading-tight">${esc(desc.slice(0, 80))}${desc.length > 80 ? "…" : ""}</span>` : ""}
-          ${hl.length ? `<div class="flex flex-wrap gap-1 mt-0.5">${hl.map((h) => `<span class="text-[0.55rem] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">${esc(h)}</span>`).join("")}</div>` : ""}
+          ${hl.length ? `<div class="flex flex-wrap gap-1 mt-0.5">${hl.slice(0, 3).map((h) => `<span class="text-[0.55rem] px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-500 dark:text-gray-400">${esc(typeof h === "string" ? h : h.name || "")}</span>`).join("")}</div>` : ""}
         </div>
         <div class="w-2.5 h-2.5 rounded-full shrink-0 mt-1 ${isPlace ? "bg-violet-500" : "bg-amber-500"}"></div>
       </div>`;
@@ -1397,8 +1407,9 @@
       const visibleHighlights = hasInterestFilter && _cityHighlightsFilter === "interest" && hasMatches
         ? matchedOnly
         : orderedHighlights;
-      let photos = photoKey ? await fetchCityPhotos(photoKey) : [];
-      if (!photos.length && city.id) photos = await fetchCityPhotos(city.id);
+      const index = await _loadPhotosIndex();
+      const entry = index[city.id] || index[photoKey] || {};
+      const hlPhotosMap = entry.highlights || {};
       if (_currentCityId !== city.id) return;
 
       if (hlTitle) {
@@ -1425,15 +1436,15 @@
         const matchScore = getHighlightMatchScore(item, userTags);
         const matched = matchScore > 0;
         const visibleTags = item.tags.slice(0, 3);
-        const photo = photos.length ? photos[(idx * 3) % photos.length] : "";
+        const photo = hlPhotosMap[item.name] || "";
         return `
-          <div class="hl-card flex gap-3 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "bg-white dark:bg-white/3 ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
-            <div class="w-14 h-14 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/60 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
-              ${photo ? "" : `<svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
+          <div class="hl-card flex gap-2.5 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
+            <div class="w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
+              ${photo ? "" : `<svg class="w-5 h-5 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
             </div>
             <div class="min-w-0 flex-1 flex flex-col justify-center gap-0.5">
               <span class="text-[0.8rem] leading-snug font-semibold ${matched ? "text-teal-700 dark:text-teal-300" : "text-gray-700 dark:text-gray-200"}">${esc(item.name)}</span>
-              ${item.desc ? `<span class="text-[0.7rem] leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2">${esc(item.desc)}</span>` : ""}
+              ${item.desc ? `<span class="text-[0.65rem] leading-snug text-gray-500 dark:text-gray-400 line-clamp-2">${esc(item.desc)}</span>` : ""}
               <div class="flex flex-wrap gap-1 mt-0.5">
                 ${visibleTags.map((tag) => `<span class="text-[0.55rem] leading-none px-1.5 py-[3px] rounded ${userTags.has(tag) ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-400 dark:text-gray-500"}">${esc(TAG_LABELS[tag] || tag)}</span>`).join("")}
               </div>
@@ -1446,7 +1457,7 @@
         card.addEventListener("click", () => {
           const idx = parseInt(card.getAttribute("data-hl-idx"), 10);
           const item = visibleHighlights[idx];
-          if (item) showHighlightModal(item, photos.length ? photos[(idx * 3) % photos.length] : "", city.name);
+          if (item) showHighlightModal(item, hlPhotosMap[item.name] || "", city.name);
         });
       });
     } else {
@@ -1567,8 +1578,9 @@
       extra.innerHTML = parts.map((p) => `<span class="detail-extra-item p-2.5 rounded-xl bg-[#e8f8f5] dark:bg-white/10 text-gray-700 dark:text-gray-300 transition-colors duration-300">${esc(p)}</span>`).join("");
     }
 
-    fetchCityPhotos(regionId).then(async (photos) => {
-      if (!photos.length && cityId) photos = await fetchCityPhotos(cityId);
+    fetchCitySliderPhotos(cityId).then(async (photos) => {
+      if (!photos.length) photos = await fetchCityPhotos(cityId);
+      if (!photos.length) photos = await fetchCitySliderPhotos(regionId);
       if (photos.length) {
         showPhotoSlider(photos);
         _applyPhotoTheme("photo");

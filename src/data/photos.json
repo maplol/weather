@@ -1,719 +1,545 @@
 {
-  "brest": [
-    "photos/brest/01.jpg",
-    "photos/brest/02.jpg",
-    "photos/brest/03.jpg",
-    "photos/brest/04.jpg",
-    "photos/brest/05.jpg",
-    "photos/brest/06.jpg",
-    "photos/brest/07.jpg",
-    "photos/brest/08.jpg",
-    "photos/brest/09.jpg",
-    "photos/brest/10.jpg",
-    "photos/brest/11.jpg",
-    "photos/brest/12.jpg",
-    "photos/brest/13.jpg",
-    "photos/brest/14.jpg",
-    "photos/brest/15.jpg",
-    "photos/brest/16.jpg",
-    "photos/brest/17.jpg",
-    "photos/brest/18.jpg",
-    "photos/brest/19.jpg",
-    "photos/brest/20.jpg",
-    "photos/brest/21.jpg",
-    "photos/brest/22.jpg",
-    "photos/brest/23.jpg",
-    "photos/brest/24.jpg",
-    "photos/brest/25.jpg",
-    "photos/brest/26.jpg",
-    "photos/brest/27.jpg",
-    "photos/brest/28.jpg",
-    "photos/brest/29.jpg",
-    "photos/brest/30.jpg",
-    "photos/brest/31.jpg",
-    "photos/brest/32.jpg",
-    "photos/brest/33.jpg",
-    "photos/brest/34.jpg",
-    "photos/brest/35.jpg",
-    "photos/brest/36.jpg"
-  ],
-  "vitebsk": [
-    "photos/vitebsk/01.jpg",
-    "photos/vitebsk/02.jpg",
-    "photos/vitebsk/03.jpg",
-    "photos/vitebsk/04.jpg",
-    "photos/vitebsk/05.jpg",
-    "photos/vitebsk/06.jpg",
-    "photos/vitebsk/07.jpg",
-    "photos/vitebsk/08.jpg",
-    "photos/vitebsk/09.jpg",
-    "photos/vitebsk/10.jpg",
-    "photos/vitebsk/11.jpg",
-    "photos/vitebsk/12.jpg",
-    "photos/vitebsk/13.jpg",
-    "photos/vitebsk/14.jpg",
-    "photos/vitebsk/15.jpg",
-    "photos/vitebsk/16.jpg",
-    "photos/vitebsk/17.jpg",
-    "photos/vitebsk/18.jpg",
-    "photos/vitebsk/19.jpg",
-    "photos/vitebsk/20.jpg",
-    "photos/vitebsk/21.jpg",
-    "photos/vitebsk/22.jpg",
-    "photos/vitebsk/23.jpg",
-    "photos/vitebsk/24.jpg",
-    "photos/vitebsk/25.jpg",
-    "photos/vitebsk/26.jpg",
-    "photos/vitebsk/27.jpg",
-    "photos/vitebsk/28.jpg",
-    "photos/vitebsk/29.jpg",
-    "photos/vitebsk/30.jpg",
-    "photos/vitebsk/31.jpg",
-    "photos/vitebsk/32.jpg",
-    "photos/vitebsk/33.jpg",
-    "photos/vitebsk/34.jpg"
-  ],
-  "gomel": [
-    "photos/gomel/01.jpg",
-    "photos/gomel/02.jpg",
-    "photos/gomel/03.jpg",
-    "photos/gomel/04.jpg",
-    "photos/gomel/05.jpg",
-    "photos/gomel/06.jpg",
-    "photos/gomel/07.jpg",
-    "photos/gomel/08.jpg",
-    "photos/gomel/09.jpg",
-    "photos/gomel/10.jpg",
-    "photos/gomel/11.jpg",
-    "photos/gomel/12.jpg",
-    "photos/gomel/13.jpg",
-    "photos/gomel/14.jpg",
-    "photos/gomel/15.jpg",
-    "photos/gomel/16.jpg",
-    "photos/gomel/17.jpg",
-    "photos/gomel/18.jpg",
-    "photos/gomel/19.jpg",
-    "photos/gomel/20.jpg",
-    "photos/gomel/21.jpg",
-    "photos/gomel/22.jpg",
-    "photos/gomel/23.jpg",
-    "photos/gomel/24.jpg",
-    "photos/gomel/25.jpg",
-    "photos/gomel/26.jpg",
-    "photos/gomel/27.jpg",
-    "photos/gomel/28.jpg",
-    "photos/gomel/29.jpg",
-    "photos/gomel/30.jpg",
-    "photos/gomel/31.jpg",
-    "photos/gomel/32.jpg",
-    "photos/gomel/33.jpg",
-    "photos/gomel/34.jpg",
-    "photos/gomel/35.jpg",
-    "photos/gomel/36.jpg",
-    "photos/gomel/37.jpg",
-    "photos/gomel/38.jpg",
-    "photos/gomel/39.jpg",
-    "photos/gomel/40.jpg"
-  ],
-  "grodno": [
-    "photos/grodno/01.jpg",
-    "photos/grodno/02.jpg",
-    "photos/grodno/03.jpg",
-    "photos/grodno/04.jpg",
-    "photos/grodno/05.jpg",
-    "photos/grodno/06.jpg",
-    "photos/grodno/07.jpg",
-    "photos/grodno/08.jpg"
-  ],
-  "minsk": [
-    "photos/minsk/01.jpg",
-    "photos/minsk/02.jpg",
-    "photos/minsk/03.jpg",
-    "photos/minsk/04.jpg",
-    "photos/minsk/05.jpg",
-    "photos/minsk/06.jpg",
-    "photos/minsk/07.jpg",
-    "photos/minsk/08.jpg",
-    "photos/minsk/09.jpg",
-    "photos/minsk/10.jpg",
-    "photos/minsk/11.jpg",
-    "photos/minsk/12.jpg",
-    "photos/minsk/13.jpg",
-    "photos/minsk/14.jpg",
-    "photos/minsk/15.jpg",
-    "photos/minsk/16.jpg",
-    "photos/minsk/17.jpg",
-    "photos/minsk/18.jpg",
-    "photos/minsk/19.jpg",
-    "photos/minsk/20.jpg",
-    "photos/minsk/21.jpg",
-    "photos/minsk/22.jpg",
-    "photos/minsk/23.jpg",
-    "photos/minsk/24.jpg",
-    "photos/minsk/25.jpg",
-    "photos/minsk/26.jpg",
-    "photos/minsk/27.jpg",
-    "photos/minsk/28.jpg",
-    "photos/minsk/29.jpg",
-    "photos/minsk/30.jpg",
-    "photos/minsk/31.jpg",
-    "photos/minsk/32.jpg",
-    "photos/minsk/33.jpg",
-    "photos/minsk/34.jpg",
-    "photos/minsk/35.jpg",
-    "photos/minsk/36.jpg",
-    "photos/minsk/37.jpg",
-    "photos/minsk/38.jpg",
-    "photos/minsk/39.jpg",
-    "photos/minsk/40.jpg"
-  ],
-  "mogilev": [
-    "photos/mogilev/01.jpg",
-    "photos/mogilev/02.jpg",
-    "photos/mogilev/03.jpg",
-    "photos/mogilev/04.jpg",
-    "photos/mogilev/05.jpg",
-    "photos/mogilev/06.jpg",
-    "photos/mogilev/07.jpg",
-    "photos/mogilev/08.jpg",
-    "photos/mogilev/09.jpg",
-    "photos/mogilev/10.jpg",
-    "photos/mogilev/11.jpg",
-    "photos/mogilev/12.jpg",
-    "photos/mogilev/13.jpg",
-    "photos/mogilev/14.jpg",
-    "photos/mogilev/15.jpg",
-    "photos/mogilev/16.jpg",
-    "photos/mogilev/17.jpg",
-    "photos/mogilev/18.jpg",
-    "photos/mogilev/19.jpg",
-    "photos/mogilev/20.jpg",
-    "photos/mogilev/21.jpg",
-    "photos/mogilev/22.jpg",
-    "photos/mogilev/23.jpg",
-    "photos/mogilev/24.jpg",
-    "photos/mogilev/25.jpg",
-    "photos/mogilev/26.jpg",
-    "photos/mogilev/27.jpg",
-    "photos/mogilev/28.jpg",
-    "photos/mogilev/29.jpg",
-    "photos/mogilev/30.jpg"
-  ],
-  "belovezhskaya": [],
-  "mir-castle": [
-    "photos/mir-castle/01.jpg",
-    "photos/mir-castle/02.jpg",
-    "photos/mir-castle/03.jpg",
-    "photos/mir-castle/04.jpg",
-    "photos/mir-castle/05.jpg",
-    "photos/mir-castle/06.jpg",
-    "photos/mir-castle/07.jpg",
-    "photos/mir-castle/08.jpg",
-    "photos/mir-castle/09.jpg",
-    "photos/mir-castle/10.jpg",
-    "photos/mir-castle/11.jpg",
-    "photos/mir-castle/12.jpg",
-    "photos/mir-castle/13.jpg",
-    "photos/mir-castle/14.jpg",
-    "photos/mir-castle/15.jpg",
-    "photos/mir-castle/16.jpg",
-    "photos/mir-castle/17.jpg",
-    "photos/mir-castle/18.jpg",
-    "photos/mir-castle/19.jpg",
-    "photos/mir-castle/20.jpg",
-    "photos/mir-castle/21.jpg",
-    "photos/mir-castle/22.jpg",
-    "photos/mir-castle/23.jpg",
-    "photos/mir-castle/24.jpg",
-    "photos/mir-castle/25.jpg",
-    "photos/mir-castle/26.jpg",
-    "photos/mir-castle/27.jpg",
-    "photos/mir-castle/28.jpg",
-    "photos/mir-castle/29.jpg",
-    "photos/mir-castle/30.jpg",
-    "photos/mir-castle/31.jpg",
-    "photos/mir-castle/32.jpg",
-    "photos/mir-castle/33.jpg",
-    "photos/mir-castle/34.jpg",
-    "photos/mir-castle/35.jpg",
-    "photos/mir-castle/36.jpg",
-    "photos/mir-castle/37.jpg",
-    "photos/mir-castle/38.jpg",
-    "photos/mir-castle/39.jpg",
-    "photos/mir-castle/40.jpg"
-  ],
-  "nesvizh-castle": [
-    "photos/nesvizh-castle/01.jpg",
-    "photos/nesvizh-castle/02.jpg",
-    "photos/nesvizh-castle/03.jpg",
-    "photos/nesvizh-castle/04.jpg",
-    "photos/nesvizh-castle/05.jpg",
-    "photos/nesvizh-castle/06.jpg",
-    "photos/nesvizh-castle/07.jpg",
-    "photos/nesvizh-castle/08.jpg",
-    "photos/nesvizh-castle/09.jpg",
-    "photos/nesvizh-castle/10.jpg",
-    "photos/nesvizh-castle/11.jpg",
-    "photos/nesvizh-castle/12.jpg",
-    "photos/nesvizh-castle/13.jpg",
-    "photos/nesvizh-castle/14.jpg",
-    "photos/nesvizh-castle/15.jpg",
-    "photos/nesvizh-castle/16.jpg",
-    "photos/nesvizh-castle/17.jpg",
-    "photos/nesvizh-castle/18.jpg",
-    "photos/nesvizh-castle/19.jpg",
-    "photos/nesvizh-castle/20.jpg",
-    "photos/nesvizh-castle/21.jpg",
-    "photos/nesvizh-castle/22.jpg",
-    "photos/nesvizh-castle/23.jpg",
-    "photos/nesvizh-castle/24.jpg",
-    "photos/nesvizh-castle/25.jpg",
-    "photos/nesvizh-castle/26.jpg",
-    "photos/nesvizh-castle/27.jpg",
-    "photos/nesvizh-castle/28.jpg",
-    "photos/nesvizh-castle/29.jpg",
-    "photos/nesvizh-castle/30.jpg",
-    "photos/nesvizh-castle/31.jpg",
-    "photos/nesvizh-castle/32.jpg",
-    "photos/nesvizh-castle/33.jpg",
-    "photos/nesvizh-castle/34.jpg",
-    "photos/nesvizh-castle/35.jpg",
-    "photos/nesvizh-castle/36.jpg",
-    "photos/nesvizh-castle/37.jpg",
-    "photos/nesvizh-castle/38.jpg",
-    "photos/nesvizh-castle/39.jpg",
-    "photos/nesvizh-castle/40.jpg",
-    "photos/nesvizh-castle/41.jpg",
-    "photos/nesvizh-castle/42.jpg",
-    "photos/nesvizh-castle/43.jpg",
-    "photos/nesvizh-castle/44.jpg",
-    "photos/nesvizh-castle/45.jpg",
-    "photos/nesvizh-castle/46.jpg",
-    "photos/nesvizh-castle/47.jpg"
-  ],
-  "braslav-lakes": [
-    "photos/braslav-lakes/01.jpg",
-    "photos/braslav-lakes/02.jpg",
-    "photos/braslav-lakes/03.jpg",
-    "photos/braslav-lakes/04.jpg",
-    "photos/braslav-lakes/05.jpg",
-    "photos/braslav-lakes/06.jpg",
-    "photos/braslav-lakes/07.jpg",
-    "photos/braslav-lakes/08.jpg",
-    "photos/braslav-lakes/09.jpg",
-    "photos/braslav-lakes/10.jpg",
-    "photos/braslav-lakes/11.jpg"
-  ],
-  "dudutki": [],
-  "khatyn": [
-    "photos/khatyn/01.jpg",
-    "photos/khatyn/02.jpg",
-    "photos/khatyn/03.jpg",
-    "photos/khatyn/04.jpg",
-    "photos/khatyn/05.jpg",
-    "photos/khatyn/06.jpg",
-    "photos/khatyn/07.jpg",
-    "photos/khatyn/08.jpg",
-    "photos/khatyn/09.jpg",
-    "photos/khatyn/10.jpg",
-    "photos/khatyn/11.jpg",
-    "photos/khatyn/12.jpg",
-    "photos/khatyn/13.jpg",
-    "photos/khatyn/14.jpg",
-    "photos/khatyn/15.jpg",
-    "photos/khatyn/16.jpg",
-    "photos/khatyn/17.jpg",
-    "photos/khatyn/18.jpg",
-    "photos/khatyn/19.jpg",
-    "photos/khatyn/20.jpg",
-    "photos/khatyn/21.jpg",
-    "photos/khatyn/22.jpg",
-    "photos/khatyn/23.jpg",
-    "photos/khatyn/24.jpg",
-    "photos/khatyn/25.jpg",
-    "photos/khatyn/26.jpg",
-    "photos/khatyn/27.jpg",
-    "photos/khatyn/28.jpg",
-    "photos/khatyn/29.jpg",
-    "photos/khatyn/30.jpg",
-    "photos/khatyn/31.jpg",
-    "photos/khatyn/32.jpg",
-    "photos/khatyn/33.jpg",
-    "photos/khatyn/34.jpg",
-    "photos/khatyn/35.jpg",
-    "photos/khatyn/36.jpg",
-    "photos/khatyn/37.jpg",
-    "photos/khatyn/38.jpg",
-    "photos/khatyn/39.jpg",
-    "photos/khatyn/40.jpg"
-  ],
-  "augustow-canal": [],
-  "narochansky": [],
-  "pripyatsky": [
-    "photos/pripyatsky/01.jpg",
-    "photos/pripyatsky/02.jpg",
-    "photos/pripyatsky/03.jpg",
-    "photos/pripyatsky/04.jpg",
-    "photos/pripyatsky/05.jpg",
-    "photos/pripyatsky/06.jpg",
-    "photos/pripyatsky/07.jpg",
-    "photos/pripyatsky/08.jpg",
-    "photos/pripyatsky/09.jpg",
-    "photos/pripyatsky/10.jpg",
-    "photos/pripyatsky/11.jpg",
-    "photos/pripyatsky/12.jpg",
-    "photos/pripyatsky/13.jpg",
-    "photos/pripyatsky/14.jpg",
-    "photos/pripyatsky/15.jpg",
-    "photos/pripyatsky/16.jpg",
-    "photos/pripyatsky/17.jpg",
-    "photos/pripyatsky/18.jpg",
-    "photos/pripyatsky/19.jpg",
-    "photos/pripyatsky/20.jpg",
-    "photos/pripyatsky/21.jpg",
-    "photos/pripyatsky/22.jpg",
-    "photos/pripyatsky/23.jpg",
-    "photos/pripyatsky/24.jpg",
-    "photos/pripyatsky/25.jpg",
-    "photos/pripyatsky/26.jpg",
-    "photos/pripyatsky/27.jpg",
-    "photos/pripyatsky/28.jpg",
-    "photos/pripyatsky/29.jpg",
-    "photos/pripyatsky/30.jpg",
-    "photos/pripyatsky/31.jpg",
-    "photos/pripyatsky/32.jpg",
-    "photos/pripyatsky/33.jpg",
-    "photos/pripyatsky/34.jpg",
-    "photos/pripyatsky/35.jpg",
-    "photos/pripyatsky/36.jpg",
-    "photos/pripyatsky/37.jpg",
-    "photos/pripyatsky/38.jpg",
-    "photos/pripyatsky/39.jpg",
-    "photos/pripyatsky/40.jpg"
-  ],
-  "struve-arc": [
-    "photos/struve-arc/01.jpg",
-    "photos/struve-arc/02.jpg",
-    "photos/struve-arc/03.jpg",
-    "photos/struve-arc/04.jpg",
-    "photos/struve-arc/05.jpg",
-    "photos/struve-arc/06.jpg",
-    "photos/struve-arc/07.jpg",
-    "photos/struve-arc/08.jpg",
-    "photos/struve-arc/09.jpg",
-    "photos/struve-arc/10.jpg",
-    "photos/struve-arc/11.jpg",
-    "photos/struve-arc/12.jpg",
-    "photos/struve-arc/13.jpg",
-    "photos/struve-arc/14.jpg",
-    "photos/struve-arc/15.jpg",
-    "photos/struve-arc/16.jpg",
-    "photos/struve-arc/17.jpg",
-    "photos/struve-arc/18.jpg",
-    "photos/struve-arc/19.jpg",
-    "photos/struve-arc/20.jpg",
-    "photos/struve-arc/21.jpg",
-    "photos/struve-arc/22.jpg",
-    "photos/struve-arc/23.jpg",
-    "photos/struve-arc/24.jpg",
-    "photos/struve-arc/25.jpg",
-    "photos/struve-arc/26.jpg",
-    "photos/struve-arc/27.jpg",
-    "photos/struve-arc/28.jpg",
-    "photos/struve-arc/29.jpg",
-    "photos/struve-arc/30.jpg",
-    "photos/struve-arc/31.jpg",
-    "photos/struve-arc/32.jpg",
-    "photos/struve-arc/33.jpg",
-    "photos/struve-arc/34.jpg",
-    "photos/struve-arc/35.jpg",
-    "photos/struve-arc/36.jpg",
-    "photos/struve-arc/37.jpg",
-    "photos/struve-arc/38.jpg",
-    "photos/struve-arc/39.jpg",
-    "photos/struve-arc/40.jpg"
-  ],
-  "brest-fortress": [
-    "photos/brest-fortress/01.jpg",
-    "photos/brest-fortress/02.jpg",
-    "photos/brest-fortress/03.jpg",
-    "photos/brest-fortress/04.jpg",
-    "photos/brest-fortress/05.jpg",
-    "photos/brest-fortress/06.jpg"
-  ],
-  "sophia-cathedral": [],
-  "baranovichi": [
-    "photos/baranovichi/01.jpg",
-    "photos/baranovichi/02.jpg",
-    "photos/baranovichi/03.jpg",
-    "photos/baranovichi/04.jpg",
-    "photos/baranovichi/05.jpg",
-    "photos/baranovichi/06.jpg",
-    "photos/baranovichi/07.jpg",
-    "photos/baranovichi/08.jpg",
-    "photos/baranovichi/09.jpg",
-    "photos/baranovichi/10.jpg",
-    "photos/baranovichi/11.jpg",
-    "photos/baranovichi/12.jpg",
-    "photos/baranovichi/13.jpg",
-    "photos/baranovichi/14.jpg",
-    "photos/baranovichi/15.jpg",
-    "photos/baranovichi/16.jpg",
-    "photos/baranovichi/17.jpg",
-    "photos/baranovichi/18.jpg",
-    "photos/baranovichi/19.jpg",
-    "photos/baranovichi/20.jpg",
-    "photos/baranovichi/21.jpg",
-    "photos/baranovichi/22.jpg",
-    "photos/baranovichi/23.jpg",
-    "photos/baranovichi/24.jpg",
-    "photos/baranovichi/25.jpg",
-    "photos/baranovichi/26.jpg",
-    "photos/baranovichi/27.jpg",
-    "photos/baranovichi/28.jpg",
-    "photos/baranovichi/29.jpg",
-    "photos/baranovichi/30.jpg"
-  ],
-  "pinsk": [
-    "photos/pinsk/01.jpg",
-    "photos/pinsk/02.jpg",
-    "photos/pinsk/03.jpg",
-    "photos/pinsk/04.jpg",
-    "photos/pinsk/05.jpg",
-    "photos/pinsk/06.jpg",
-    "photos/pinsk/07.jpg",
-    "photos/pinsk/08.jpg",
-    "photos/pinsk/09.jpg"
-  ],
-  "kobrin": [
-    "photos/kobrin/01.jpg",
-    "photos/kobrin/02.jpg",
-    "photos/kobrin/03.jpg",
-    "photos/kobrin/04.jpg",
-    "photos/kobrin/05.jpg",
-    "photos/kobrin/06.jpg",
-    "photos/kobrin/07.jpg",
-    "photos/kobrin/08.jpg",
-    "photos/kobrin/09.jpg",
-    "photos/kobrin/10.jpg",
-    "photos/kobrin/11.jpg",
-    "photos/kobrin/12.jpg",
-    "photos/kobrin/13.jpg",
-    "photos/kobrin/14.jpg",
-    "photos/kobrin/15.jpg",
-    "photos/kobrin/16.jpg",
-    "photos/kobrin/17.jpg",
-    "photos/kobrin/18.jpg",
-    "photos/kobrin/19.jpg",
-    "photos/kobrin/20.jpg",
-    "photos/kobrin/21.jpg",
-    "photos/kobrin/22.jpg",
-    "photos/kobrin/23.jpg",
-    "photos/kobrin/24.jpg",
-    "photos/kobrin/25.jpg",
-    "photos/kobrin/26.jpg",
-    "photos/kobrin/27.jpg",
-    "photos/kobrin/28.jpg",
-    "photos/kobrin/29.jpg",
-    "photos/kobrin/30.jpg"
-  ],
-  "orsha": [
-    "photos/orsha/01.jpg",
-    "photos/orsha/02.jpg",
-    "photos/orsha/03.jpg",
-    "photos/orsha/04.jpg",
-    "photos/orsha/05.jpg",
-    "photos/orsha/06.jpg",
-    "photos/orsha/07.jpg",
-    "photos/orsha/08.jpg",
-    "photos/orsha/09.jpg",
-    "photos/orsha/10.jpg",
-    "photos/orsha/11.jpg",
-    "photos/orsha/12.jpg",
-    "photos/orsha/13.jpg",
-    "photos/orsha/14.jpg",
-    "photos/orsha/15.jpg",
-    "photos/orsha/16.jpg",
-    "photos/orsha/17.jpg",
-    "photos/orsha/18.jpg",
-    "photos/orsha/19.jpg",
-    "photos/orsha/20.jpg",
-    "photos/orsha/21.jpg",
-    "photos/orsha/22.jpg",
-    "photos/orsha/23.jpg",
-    "photos/orsha/24.jpg",
-    "photos/orsha/25.jpg",
-    "photos/orsha/26.jpg",
-    "photos/orsha/27.jpg",
-    "photos/orsha/28.jpg",
-    "photos/orsha/29.jpg",
-    "photos/orsha/30.jpg",
-    "photos/orsha/31.jpg",
-    "photos/orsha/32.jpg",
-    "photos/orsha/33.jpg",
-    "photos/orsha/34.jpg",
-    "photos/orsha/35.jpg",
-    "photos/orsha/36.jpg",
-    "photos/orsha/37.jpg",
-    "photos/orsha/38.jpg",
-    "photos/orsha/39.jpg",
-    "photos/orsha/40.jpg"
-  ],
-  "polotsk": [],
-  "mozyr": [
-    "photos/mozyr/01.jpg",
-    "photos/mozyr/02.jpg",
-    "photos/mozyr/03.jpg",
-    "photos/mozyr/04.jpg",
-    "photos/mozyr/05.jpg",
-    "photos/mozyr/06.jpg",
-    "photos/mozyr/07.jpg",
-    "photos/mozyr/08.jpg",
-    "photos/mozyr/09.jpg",
-    "photos/mozyr/10.jpg",
-    "photos/mozyr/11.jpg",
-    "photos/mozyr/12.jpg",
-    "photos/mozyr/13.jpg",
-    "photos/mozyr/14.jpg",
-    "photos/mozyr/15.jpg",
-    "photos/mozyr/16.jpg",
-    "photos/mozyr/17.jpg",
-    "photos/mozyr/18.jpg",
-    "photos/mozyr/19.jpg",
-    "photos/mozyr/20.jpg",
-    "photos/mozyr/21.jpg",
-    "photos/mozyr/22.jpg",
-    "photos/mozyr/23.jpg",
-    "photos/mozyr/24.jpg",
-    "photos/mozyr/25.jpg",
-    "photos/mozyr/26.jpg",
-    "photos/mozyr/27.jpg",
-    "photos/mozyr/28.jpg",
-    "photos/mozyr/29.jpg",
-    "photos/mozyr/30.jpg",
-    "photos/mozyr/31.jpg",
-    "photos/mozyr/32.jpg",
-    "photos/mozyr/33.jpg",
-    "photos/mozyr/34.jpg",
-    "photos/mozyr/35.jpg",
-    "photos/mozyr/36.jpg",
-    "photos/mozyr/37.jpg",
-    "photos/mozyr/38.jpg",
-    "photos/mozyr/39.jpg",
-    "photos/mozyr/40.jpg"
-  ],
-  "lida": [],
-  "slonim": [
-    "photos/slonim/01.jpg",
-    "photos/slonim/02.jpg",
-    "photos/slonim/03.jpg",
-    "photos/slonim/04.jpg",
-    "photos/slonim/05.jpg",
-    "photos/slonim/06.jpg",
-    "photos/slonim/07.jpg",
-    "photos/slonim/08.jpg",
-    "photos/slonim/09.jpg",
-    "photos/slonim/10.jpg",
-    "photos/slonim/11.jpg",
-    "photos/slonim/12.jpg",
-    "photos/slonim/13.jpg",
-    "photos/slonim/14.jpg",
-    "photos/slonim/15.jpg",
-    "photos/slonim/16.jpg",
-    "photos/slonim/17.jpg",
-    "photos/slonim/18.jpg",
-    "photos/slonim/19.jpg",
-    "photos/slonim/20.jpg",
-    "photos/slonim/21.jpg",
-    "photos/slonim/22.jpg",
-    "photos/slonim/23.jpg",
-    "photos/slonim/24.jpg",
-    "photos/slonim/25.jpg",
-    "photos/slonim/26.jpg",
-    "photos/slonim/27.jpg",
-    "photos/slonim/28.jpg",
-    "photos/slonim/29.jpg",
-    "photos/slonim/30.jpg"
-  ],
-  "novogrudok": [
-    "photos/novogrudok/01.jpg",
-    "photos/novogrudok/02.jpg",
-    "photos/novogrudok/03.jpg",
-    "photos/novogrudok/04.jpg",
-    "photos/novogrudok/05.jpg",
-    "photos/novogrudok/06.jpg",
-    "photos/novogrudok/07.jpg",
-    "photos/novogrudok/08.jpg",
-    "photos/novogrudok/09.jpg",
-    "photos/novogrudok/10.jpg",
-    "photos/novogrudok/11.jpg",
-    "photos/novogrudok/12.jpg",
-    "photos/novogrudok/13.jpg",
-    "photos/novogrudok/14.jpg",
-    "photos/novogrudok/15.jpg",
-    "photos/novogrudok/16.jpg",
-    "photos/novogrudok/17.jpg",
-    "photos/novogrudok/18.jpg",
-    "photos/novogrudok/19.jpg",
-    "photos/novogrudok/20.jpg",
-    "photos/novogrudok/21.jpg",
-    "photos/novogrudok/22.jpg",
-    "photos/novogrudok/23.jpg",
-    "photos/novogrudok/24.jpg",
-    "photos/novogrudok/25.jpg",
-    "photos/novogrudok/26.jpg",
-    "photos/novogrudok/27.jpg",
-    "photos/novogrudok/28.jpg",
-    "photos/novogrudok/29.jpg",
-    "photos/novogrudok/30.jpg",
-    "photos/novogrudok/31.jpg",
-    "photos/novogrudok/32.jpg",
-    "photos/novogrudok/33.jpg",
-    "photos/novogrudok/34.jpg",
-    "photos/novogrudok/35.jpg",
-    "photos/novogrudok/36.jpg",
-    "photos/novogrudok/37.jpg",
-    "photos/novogrudok/38.jpg",
-    "photos/novogrudok/39.jpg",
-    "photos/novogrudok/40.jpg"
-  ],
-  "borisov": [],
-  "soligorsk": [],
-  "slutsk": [
-    "photos/slutsk/01.jpg",
-    "photos/slutsk/02.jpg",
-    "photos/slutsk/03.jpg",
-    "photos/slutsk/04.jpg",
-    "photos/slutsk/05.jpg",
-    "photos/slutsk/06.jpg",
-    "photos/slutsk/07.jpg",
-    "photos/slutsk/08.jpg",
-    "photos/slutsk/09.jpg",
-    "photos/slutsk/10.jpg",
-    "photos/slutsk/11.jpg",
-    "photos/slutsk/12.jpg",
-    "photos/slutsk/13.jpg",
-    "photos/slutsk/14.jpg",
-    "photos/slutsk/15.jpg",
-    "photos/slutsk/16.jpg",
-    "photos/slutsk/17.jpg",
-    "photos/slutsk/18.jpg",
-    "photos/slutsk/19.jpg",
-    "photos/slutsk/20.jpg",
-    "photos/slutsk/21.jpg",
-    "photos/slutsk/22.jpg",
-    "photos/slutsk/23.jpg",
-    "photos/slutsk/24.jpg",
-    "photos/slutsk/25.jpg",
-    "photos/slutsk/26.jpg",
-    "photos/slutsk/27.jpg",
-    "photos/slutsk/28.jpg"
-  ],
-  "bobruysk": [],
-  "mogilev-city": [
-    "photos/mogilev-city/01.jpg",
-    "photos/mogilev-city/02.jpg",
-    "photos/mogilev-city/03.jpg",
-    "photos/mogilev-city/04.jpg"
-  ]
+  "brest-city": {
+    "city": [
+      "photos/brest/brest-city/_city/01.webp",
+      "photos/brest/brest-city/_city/02.webp",
+      "photos/brest/brest-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Брестская крепость": "photos/brest/brest-city/brestskaya-krepost.webp",
+      "Музей обороны крепости": "photos/brest/brest-city/muzey-oboron-kreposti.webp",
+      "Музей железнодорожной техники": "photos/brest/brest-city/muzey-zheleznodorozhnoy-tekhniki.webp",
+      "Свято-Симеоновский собор": "photos/brest/brest-city/svyato-simeonovskiy-sobor.webp",
+      "Археологический музей «Берестье»": "photos/brest/brest-city/arkheologicheskiy-muzey-bereste.webp"
+    }
+  },
+  "baranovichi": {
+    "city": [
+      "photos/brest/baranovichi/_city/01.webp",
+      "photos/brest/baranovichi/_city/02.webp",
+      "photos/brest/baranovichi/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей железнодорожной техники": "photos/brest/baranovichi/muzey-zheleznodorozhnoy-tekhniki.webp",
+      "Краеведческий музей": "photos/brest/baranovichi/kraevedcheskiy-muzey.webp",
+      "Свято-Покровский собор": "photos/brest/baranovichi/svyato-pokrovskiy-sobor.webp",
+      "Памятный знак Ставке": "photos/brest/baranovichi/pamyatny-znak-stavke.webp"
+    }
+  },
+  "pinsk": {
+    "city": [
+      "photos/brest/pinsk/_city/01.webp",
+      "photos/brest/pinsk/_city/02.webp",
+      "photos/brest/pinsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Иезуитский коллегиум": "photos/brest/pinsk/iezuitskiy-kollegium.webp",
+      "Дворец Бутримовича": "photos/brest/pinsk/dvorets-butrimovicha.webp",
+      "Костёл Карла Борромея": "photos/brest/pinsk/kostel-karla-borromeya.webp",
+      "Свято-Варваринский собор": "photos/brest/pinsk/svyato-varvarinskiy-sobor.webp",
+      "Набережная Пины": "photos/brest/pinsk/naberezhnaya-pin.webp",
+      "Полесский драмтеатр": "photos/brest/pinsk/polesskiy-dramteatr.webp"
+    }
+  },
+  "kobrin": {
+    "city": [
+      "photos/brest/kobrin/_city/01.webp",
+      "photos/brest/kobrin/_city/02.webp",
+      "photos/brest/kobrin/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей Суворова": "photos/brest/kobrin/muzey-suvorova.webp",
+      "Парк им. Суворова": "photos/brest/kobrin/park-im-suvorova.webp",
+      "Свято-Александро-Невский собор": "photos/brest/kobrin/svyato-aleksandro-nevskiy-sobor.webp",
+      "Набережная Мухавца": "photos/brest/kobrin/naberezhnaya-mukhavtsa.webp"
+    }
+  },
+  "luninets": {
+    "city": [
+      "photos/brest/luninets/_city/01.webp",
+      "photos/brest/luninets/_city/02.webp",
+      "photos/brest/luninets/_city/03.webp"
+    ],
+    "highlights": {
+      "Краеведческий музей": "photos/brest/luninets/kraevedcheskiy-muzey.webp",
+      "Полесские болота": "photos/brest/luninets/polesskie-bolota.webp",
+      "Городской парк": "photos/brest/luninets/gorodskoy-park.webp"
+    }
+  },
+  "vitebsk-city": {
+    "city": [
+      "photos/vitebsk/vitebsk-city/_city/01.webp",
+      "photos/vitebsk/vitebsk-city/_city/02.webp",
+      "photos/vitebsk/vitebsk-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Дом-музей Марка Шагала": "photos/vitebsk/vitebsk-city/dom-muzey-marka-shagala.webp",
+      "Арт-центр Шагала": "photos/vitebsk/vitebsk-city/art-tsentr-shagala.webp",
+      "Амфитеатр «Славянского базара»": "photos/vitebsk/vitebsk-city/amfiteatr-slavyanskogo-bazara.webp",
+      "Витебская ратуша": "photos/vitebsk/vitebsk-city/vitebskaya-ratusha.webp",
+      "Успенский собор": "photos/vitebsk/vitebsk-city/uspenskiy-sobor.webp"
+    }
+  },
+  "orsha": {
+    "city": [
+      "photos/vitebsk/orsha/_city/01.webp",
+      "photos/vitebsk/orsha/_city/02.webp",
+      "photos/vitebsk/orsha/_city/03.webp"
+    ],
+    "highlights": {
+      "Мемориал «Катюша»": "photos/vitebsk/orsha/memorial-katyusha.webp",
+      "Иезуитский коллегиум": "photos/vitebsk/orsha/iezuitskiy-kollegium.webp",
+      "Водяная мельница": "photos/vitebsk/orsha/vodyanaya-melnitsa.webp",
+      "Кутеинский монастырь": "photos/vitebsk/orsha/kuteinskiy-monastr.webp"
+    }
+  },
+  "polotsk": {
+    "city": [
+      "photos/vitebsk/polotsk/_city/01.webp",
+      "photos/vitebsk/polotsk/_city/02.webp",
+      "photos/vitebsk/polotsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Софийский собор": "photos/vitebsk/polotsk/sofiyskiy-sobor.webp",
+      "Спасо-Евфросиниевский монастырь": "photos/vitebsk/polotsk/spaso-evfrosinievskiy-monastr.webp",
+      "Музей книгопечатания": "photos/vitebsk/polotsk/muzey-knigopechataniya.webp",
+      "Борисов камень": "photos/vitebsk/polotsk/borisov-kamen.webp",
+      "Знак «Центр Европы»": "photos/vitebsk/polotsk/znak-tsentr-evrop.webp"
+    }
+  },
+  "novopolotsk": {
+    "city": [
+      "photos/vitebsk/novopolotsk/_city/01.webp",
+      "photos/vitebsk/novopolotsk/_city/02.webp",
+      "photos/vitebsk/novopolotsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей истории «Нафтан»": "photos/vitebsk/novopolotsk/muzey-istorii-naftan.webp",
+      "Набережная Западной Двины": "photos/vitebsk/novopolotsk/naberezhnaya-zapadnoy-dvin.webp"
+    }
+  },
+  "glubokoye": {
+    "city": [
+      "photos/vitebsk/glubokoye/_city/01.webp",
+      "photos/vitebsk/glubokoye/_city/02.webp",
+      "photos/vitebsk/glubokoye/_city/03.webp"
+    ],
+    "highlights": {
+      "Троицкий костёл": "photos/vitebsk/glubokoye/troitskiy-kostel.webp",
+      "Собор Рождества Богородицы": "photos/vitebsk/glubokoye/sobor-rozhdestva-bogorodits.webp",
+      "Фестиваль вишни": "photos/vitebsk/glubokoye/festival-vishni.webp"
+    }
+  },
+  "gomel-city": {
+    "city": [
+      "photos/gomel/gomel-city/_city/01.webp",
+      "photos/gomel/gomel-city/_city/02.webp",
+      "photos/gomel/gomel-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Дворец Румянцевых-Паскевичей": "photos/gomel/gomel-city/dvorets-rumyantsevkh-paskevichey.webp",
+      "Петропавловский собор": "photos/gomel/gomel-city/petropavlovskiy-sobor.webp",
+      "Зимний сад": "photos/gomel/gomel-city/zimniy-sad.webp",
+      "Башня обозрения": "photos/gomel/gomel-city/bashnya-obozreniya.webp",
+      "Краеведческий музей": "photos/gomel/gomel-city/kraevedcheskiy-muzey.webp",
+      "Набережная Сожа": "photos/gomel/gomel-city/naberezhnaya-sozha.webp"
+    }
+  },
+  "mozyr": {
+    "city": [
+      "photos/gomel/mozyr/_city/01.webp",
+      "photos/gomel/mozyr/_city/02.webp",
+      "photos/gomel/mozyr/_city/03.webp"
+    ],
+    "highlights": {
+      "Замковая гора": "photos/gomel/mozyr/zamkovaya-gora.webp",
+      "Костёл Св. Михаила": "photos/gomel/mozyr/kostel-sv-mikhaila.webp",
+      "Мозырский замок": "photos/gomel/mozyr/mozrskiy-zamok.webp",
+      "Набережная Припяти": "photos/gomel/mozyr/naberezhnaya-pripyati.webp",
+      "Горнолыжный комплекс": "photos/gomel/mozyr/gornolzhny-kompleks.webp"
+    }
+  },
+  "zhlobin": {
+    "city": [
+      "photos/gomel/zhlobin/_city/01.webp",
+      "photos/gomel/zhlobin/_city/02.webp",
+      "photos/gomel/zhlobin/_city/03.webp"
+    ],
+    "highlights": {
+      "Краеведческий музей": "photos/gomel/zhlobin/kraevedcheskiy-muzey.webp",
+      "Набережная Днепра": "photos/gomel/zhlobin/naberezhnaya-dnepra.webp",
+      "Ледовый дворец": "photos/gomel/zhlobin/ledovy-dvorets.webp"
+    }
+  },
+  "rechitsa": {
+    "city": [
+      "photos/gomel/rechitsa/_city/01.webp",
+      "photos/gomel/rechitsa/_city/02.webp",
+      "photos/gomel/rechitsa/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей нефтяников": "photos/gomel/rechitsa/muzey-neftyanikov.webp",
+      "Свято-Успенский собор": "photos/gomel/rechitsa/svyato-uspenskiy-sobor.webp",
+      "Набережная Днепра": "photos/gomel/rechitsa/naberezhnaya-dnepra.webp"
+    }
+  },
+  "svetlogorsk": {
+    "city": [
+      "photos/gomel/svetlogorsk/_city/01.webp",
+      "photos/gomel/svetlogorsk/_city/02.webp",
+      "photos/gomel/svetlogorsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Парк культуры": "photos/gomel/svetlogorsk/park-kultur.webp",
+      "Набережная Березины": "photos/gomel/svetlogorsk/naberezhnaya-berezin.webp"
+    }
+  },
+  "grodno-city": {
+    "city": [
+      "photos/grodno/grodno-city/_city/01.webp",
+      "photos/grodno/grodno-city/_city/02.webp",
+      "photos/grodno/grodno-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Старый замок": "photos/grodno/grodno-city/stary-zamok.webp",
+      "Новый замок": "photos/grodno/grodno-city/novy-zamok.webp",
+      "Коложская церковь": "photos/grodno/grodno-city/kolozhskaya-tserkov.webp",
+      "Фарный костёл": "photos/grodno/grodno-city/farny-kostel.webp",
+      "Большая хоральная синагога": "photos/grodno/grodno-city/bolshaya-khoralnaya-sinagoga.webp",
+      "Музей истории религии": "photos/grodno/grodno-city/muzey-istorii-religii.webp"
+    }
+  },
+  "lida": {
+    "city": [
+      "photos/grodno/lida/_city/01.webp",
+      "photos/grodno/lida/_city/02.webp",
+      "photos/grodno/lida/_city/03.webp"
+    ],
+    "highlights": {
+      "Лидский замок": "photos/grodno/lida/lidskiy-zamok.webp",
+      "Лидский пивзавод": "photos/grodno/lida/lidskiy-pivzavod.webp",
+      "Крестовоздвиженский костёл": "photos/grodno/lida/krestovozdvizhenskiy-kostel.webp",
+      "Собор Михаила Архангела": "photos/grodno/lida/sobor-mikhaila-arkhangela.webp"
+    }
+  },
+  "slonim": {
+    "city": [
+      "photos/grodno/slonim/_city/01.webp",
+      "photos/grodno/slonim/_city/02.webp",
+      "photos/grodno/slonim/_city/03.webp"
+    ],
+    "highlights": {
+      "Слонимская синагога": "photos/grodno/slonim/slonimskaya-sinagoga.webp",
+      "Канал Огинского": "photos/grodno/slonim/kanal-oginskogo.webp",
+      "Костёл Св. Андрея": "photos/grodno/slonim/kostel-sv-andreya.webp",
+      "Краеведческий музей": "photos/grodno/slonim/kraevedcheskiy-muzey.webp"
+    }
+  },
+  "volkovysk": {
+    "city": [
+      "photos/grodno/volkovysk/_city/01.webp",
+      "photos/grodno/volkovysk/_city/02.webp",
+      "photos/grodno/volkovysk/_city/03.webp"
+    ],
+    "highlights": {
+      "Шведская гора": "photos/grodno/volkovysk/shvedskaya-gora.webp",
+      "Военно-исторический музей": "photos/grodno/volkovysk/voenno-istoricheskiy-muzey.webp",
+      "Петропавловский собор": "photos/grodno/volkovysk/petropavlovskiy-sobor.webp"
+    }
+  },
+  "novogrudok": {
+    "city": [
+      "photos/grodno/novogrudok/_city/01.webp",
+      "photos/grodno/novogrudok/_city/02.webp",
+      "photos/grodno/novogrudok/_city/03.webp"
+    ],
+    "highlights": {
+      "Руины Новогрудского замка": "photos/grodno/novogrudok/ruin-novogrudskogo-zamka.webp",
+      "Дом-музей Мицкевича": "photos/grodno/novogrudok/dom-muzey-mitskevicha.webp",
+      "Курган Бессмертия": "photos/grodno/novogrudok/kurgan-bessmertiya.webp",
+      "Фарный костёл Преображения": "photos/grodno/novogrudok/farny-kostel-preobrazheniya.webp",
+      "Борисоглебская церковь": "photos/grodno/novogrudok/borisoglebskaya-tserkov.webp"
+    }
+  },
+  "minsk-city": {
+    "city": [
+      "photos/minsk/minsk-city/_city/01.webp",
+      "photos/minsk/minsk-city/_city/02.webp",
+      "photos/minsk/minsk-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Красный костёл": "photos/minsk/minsk-city/krasny-kostel.webp",
+      "Национальная библиотека": "photos/minsk/minsk-city/natsionalnaya-biblioteka.webp",
+      "Музей ВОВ": "photos/minsk/minsk-city/muzey-vov.webp",
+      "Ратуша": "photos/minsk/minsk-city/ratusha.webp",
+      "Национальный художественный музей": "photos/minsk/minsk-city/natsionalny-khudozhestvenny-muzey.webp"
+    }
+  },
+  "borisov": {
+    "city": [
+      "photos/minsk/borisov/_city/01.webp",
+      "photos/minsk/borisov/_city/02.webp",
+      "photos/minsk/borisov/_city/03.webp"
+    ],
+    "highlights": {
+      "Мемориалы на Березине": "photos/minsk/borisov/memorial-na-berezine.webp",
+      "Воскресенский собор": "photos/minsk/borisov/voskresenskiy-sobor.webp",
+      "Краеведческий музей": "photos/minsk/borisov/kraevedcheskiy-muzey.webp",
+      "Борисов-Арена": "photos/minsk/borisov/borisov-arena.webp"
+    }
+  },
+  "soligorsk": {
+    "city": [
+      "photos/minsk/soligorsk/_city/01.webp",
+      "photos/minsk/soligorsk/_city/02.webp",
+      "photos/minsk/soligorsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Спелеолечебница": "photos/minsk/soligorsk/speleolechebnitsa.webp",
+      "Терриконы": "photos/minsk/soligorsk/terrikon.webp",
+      "Музей шахтёров": "photos/minsk/soligorsk/muzey-shakhterov.webp"
+    }
+  },
+  "molodechno": {
+    "city": [
+      "photos/minsk/molodechno/_city/01.webp",
+      "photos/minsk/molodechno/_city/02.webp",
+      "photos/minsk/molodechno/_city/03.webp"
+    ],
+    "highlights": {
+      "Краеведческий музей": "photos/minsk/molodechno/kraevedcheskiy-muzey.webp",
+      "Костёл Вознесения": "photos/minsk/molodechno/kostel-vozneseniya.webp",
+      "Парк Победы": "photos/minsk/molodechno/park-pobed.webp"
+    }
+  },
+  "zhodino": {
+    "city": [
+      "photos/minsk/zhodino/_city/01.webp",
+      "photos/minsk/zhodino/_city/02.webp",
+      "photos/minsk/zhodino/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей истории БелАЗ": "photos/minsk/zhodino/muzey-istorii-belaz.webp",
+      "Площадка карьерной техники": "photos/minsk/zhodino/ploshchadka-karernoy-tekhniki.webp",
+      "Парк культуры": "photos/minsk/zhodino/park-kultur.webp"
+    }
+  },
+  "slutsk": {
+    "city": [
+      "photos/minsk/slutsk/_city/01.webp",
+      "photos/minsk/slutsk/_city/02.webp",
+      "photos/minsk/slutsk/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей «Слуцкие пояса»": "photos/minsk/slutsk/muzey-slutskie-poyasa.webp",
+      "Свято-Михайловский собор": "photos/minsk/slutsk/svyato-mikhaylovskiy-sobor.webp",
+      "Краеведческий музей": "photos/minsk/slutsk/kraevedcheskiy-muzey.webp",
+      "Набережная реки Случь": "photos/minsk/slutsk/naberezhnaya-reki-sluch.webp"
+    }
+  },
+  "mogilev-city": {
+    "city": [
+      "photos/mogilev/mogilev-city/_city/01.webp",
+      "photos/mogilev/mogilev-city/_city/02.webp",
+      "photos/mogilev/mogilev-city/_city/03.webp"
+    ],
+    "highlights": {
+      "Могилёвская ратуша": "photos/mogilev/mogilev-city/mogilevskaya-ratusha.webp",
+      "Скульптура «Звездочёт»": "photos/mogilev/mogilev-city/skulptura-zvezdochet.webp",
+      "Свято-Никольский монастырь": "photos/mogilev/mogilev-city/svyato-nikolskiy-monastr.webp",
+      "Музей этнографии": "photos/mogilev/mogilev-city/muzey-etnografii.webp"
+    }
+  },
+  "bobruysk": {
+    "city": [
+      "photos/mogilev/bobruysk/_city/01.webp",
+      "photos/mogilev/bobruysk/_city/02.webp",
+      "photos/mogilev/bobruysk/_city/03.webp"
+    ],
+    "highlights": {
+      "Бобруйская крепость": "photos/mogilev/bobruysk/bobruyskaya-krepost.webp",
+      "Памятник бобру": "photos/mogilev/bobruysk/pamyatnik-bobru.webp",
+      "Свято-Георгиевский храм": "photos/mogilev/bobruysk/svyato-georgievskiy-khram.webp",
+      "Старая синагога": "photos/mogilev/bobruysk/staraya-sinagoga.webp"
+    }
+  },
+  "gorki": {
+    "city": [
+      "photos/mogilev/gorki/_city/01.webp",
+      "photos/mogilev/gorki/_city/02.webp",
+      "photos/mogilev/gorki/_city/03.webp"
+    ],
+    "highlights": {
+      "Здание академии": "photos/mogilev/gorki/zdanie-akademii.webp",
+      "Ботанический сад": "photos/mogilev/gorki/botanicheskiy-sad.webp"
+    }
+  },
+  "osipovichi": {
+    "city": [
+      "photos/mogilev/osipovichi/_city/01.webp",
+      "photos/mogilev/osipovichi/_city/02.webp",
+      "photos/mogilev/osipovichi/_city/03.webp"
+    ],
+    "highlights": {
+      "Мемориал Крыловичу": "photos/mogilev/osipovichi/memorial-krlovichu.webp",
+      "Историческая станция": "photos/mogilev/osipovichi/istoricheskaya-stantsiya.webp"
+    }
+  },
+  "krichev": {
+    "city": [
+      "photos/mogilev/krichev/_city/01.webp",
+      "photos/mogilev/krichev/_city/02.webp",
+      "photos/mogilev/krichev/_city/03.webp"
+    ],
+    "highlights": {
+      "Дворец Потёмкина": "photos/mogilev/krichev/dvorets-potemkina.webp",
+      "Краеведческий музей": "photos/mogilev/krichev/kraevedcheskiy-muzey.webp",
+      "Замковая гора": "photos/mogilev/krichev/zamkovaya-gora.webp",
+      "Свято-Николаевская церковь": "photos/mogilev/krichev/svyato-nikolaevskaya-tserkov.webp"
+    }
+  },
+  "belovezhskaya": {
+    "city": [
+      "photos/places/belovezhskaya/_city/01.webp",
+      "photos/places/belovezhskaya/_city/02.webp",
+      "photos/places/belovezhskaya/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей природы": "photos/places/belovezhskaya/muzey-prirod.webp",
+      "Вольеры зубров": "photos/places/belovezhskaya/voler-zubrov.webp",
+      "800-летний дуб": "photos/places/belovezhskaya/800-letniy-dub.webp",
+      "Резиденция Деда Мороза": "photos/places/belovezhskaya/rezidentsiya-deda-moroza.webp"
+    }
+  },
+  "mir-castle": {
+    "city": [
+      "photos/places/mir-castle/_city/01.webp",
+      "photos/places/mir-castle/_city/02.webp",
+      "photos/places/mir-castle/_city/03.webp"
+    ],
+    "highlights": {
+      "Замковый музей": "photos/places/mir-castle/zamkovy-muzey.webp",
+      "Часовня Святополк-Мирских": "photos/places/mir-castle/chasovnya-svyatopolk-mirskikh.webp",
+      "Итальянский сад": "photos/places/mir-castle/italyanskiy-sad.webp"
+    }
+  },
+  "nesvizh-castle": {
+    "city": [
+      "photos/places/nesvizh-castle/_city/01.webp",
+      "photos/places/nesvizh-castle/_city/02.webp",
+      "photos/places/nesvizh-castle/_city/03.webp"
+    ],
+    "highlights": {
+      "Дворцовый комплекс": "photos/places/nesvizh-castle/dvortsovy-kompleks.webp",
+      "Фарный костёл (1593)": "photos/places/nesvizh-castle/farny-kostel-1593.webp",
+      "Парк с прудами": "photos/places/nesvizh-castle/park-s-prudami.webp"
+    }
+  },
+  "braslav-lakes": {
+    "city": [
+      "photos/places/braslav-lakes/_city/01.webp",
+      "photos/places/braslav-lakes/_city/02.webp",
+      "photos/places/braslav-lakes/_city/03.webp"
+    ],
+    "highlights": {
+      "Гора Маяк": "photos/places/braslav-lakes/gora-mayak.webp",
+      "Остров на оз. Струсто": "photos/places/braslav-lakes/ostrov-na-oz-strusto.webp",
+      "Экотропы": "photos/places/braslav-lakes/ekotrop.webp"
+    }
+  },
+  "dudutki": {
+    "city": [
+      "photos/places/dudutki/_city/01.webp",
+      "photos/places/dudutki/_city/02.webp",
+      "photos/places/dudutki/_city/03.webp"
+    ],
+    "highlights": {
+      "Кузница": "photos/places/dudutki/kuznitsa.webp",
+      "Гончарня": "photos/places/dudutki/goncharnya.webp",
+      "Мельница": "photos/places/dudutki/melnitsa.webp"
+    }
+  },
+  "khatyn": {
+    "city": [
+      "photos/places/khatyn/_city/01.webp",
+      "photos/places/khatyn/_city/02.webp",
+      "photos/places/khatyn/_city/03.webp"
+    ],
+    "highlights": {
+      "«Непокорённый человек»": "photos/places/khatyn/nepokorenny-chelovek.webp",
+      "Кладбище деревень": "photos/places/khatyn/kladbishche-dereven.webp",
+      "Колокола Хатыни": "photos/places/khatyn/kolokola-khatni.webp"
+    }
+  },
+  "augustow-canal": {
+    "city": [
+      "photos/places/augustow-canal/_city/01.webp",
+      "photos/places/augustow-canal/_city/02.webp",
+      "photos/places/augustow-canal/_city/03.webp"
+    ],
+    "highlights": {
+      "Шлюзы XIX в.": "photos/places/augustow-canal/shlyuz-xix-v.webp",
+      "Прогулки на теплоходе": "photos/places/augustow-canal/progulki-na-teplokhode.webp",
+      "Домик смотрителя": "photos/places/augustow-canal/domik-smotritelya.webp"
+    }
+  },
+  "narochansky": {
+    "city": [
+      "photos/places/narochansky/_city/01.webp",
+      "photos/places/narochansky/_city/02.webp",
+      "photos/places/narochansky/_city/03.webp"
+    ],
+    "highlights": {
+      "Озеро Нарочь": "photos/places/narochansky/ozero-naroch.webp",
+      "Голубые озёра": "photos/places/narochansky/golube-ozera.webp",
+      "Санаторий «Нарочь»": "photos/places/narochansky/sanatoriy-naroch.webp"
+    }
+  },
+  "pripyatsky": {
+    "city": [
+      "photos/places/pripyatsky/_city/01.webp",
+      "photos/places/pripyatsky/_city/02.webp",
+      "photos/places/pripyatsky/_city/03.webp"
+    ],
+    "highlights": {
+      "Сафари по Припяти": "photos/places/pripyatsky/safari-po-pripyati.webp",
+      "Музей природы": "photos/places/pripyatsky/muzey-prirod.webp",
+      "Дубравы": "photos/places/pripyatsky/dubrav.webp"
+    }
+  },
+  "struve-arc": {
+    "city": [
+      "photos/places/struve-arc/_city/01.webp",
+      "photos/places/struve-arc/_city/02.webp",
+      "photos/places/struve-arc/_city/03.webp"
+    ],
+    "highlights": {
+      "Пункт «Тупишки»": "photos/places/struve-arc/punkt-tupishki.webp",
+      "Информационный стенд": "photos/places/struve-arc/informatsionny-stend.webp"
+    }
+  },
+  "brest-fortress": {
+    "city": [
+      "photos/places/brest-fortress/_city/01.webp",
+      "photos/places/brest-fortress/_city/02.webp",
+      "photos/places/brest-fortress/_city/03.webp"
+    ],
+    "highlights": {
+      "Монумент «Мужество»": "photos/places/brest-fortress/monument-muzhestvo.webp",
+      "Музей обороны": "photos/places/brest-fortress/muzey-oboron.webp",
+      "Руины Белого дворца": "photos/places/brest-fortress/ruin-belogo-dvortsa.webp"
+    }
+  },
+  "sophia-cathedral": {
+    "city": [
+      "photos/places/sophia-cathedral/_city/01.webp",
+      "photos/places/sophia-cathedral/_city/02.webp",
+      "photos/places/sophia-cathedral/_city/03.webp"
+    ],
+    "highlights": {
+      "Концерты органной музыки": "photos/places/sophia-cathedral/kontsert-organnoy-muzki.webp",
+      "Фрески XI века": "photos/places/sophia-cathedral/freski-xi-veka.webp",
+      "Борисов камень": "photos/places/sophia-cathedral/borisov-kamen.webp"
+    }
+  }
 }

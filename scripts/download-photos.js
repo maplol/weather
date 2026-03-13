@@ -1,177 +1,226 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
-
-const API_KEY = process.env.UNSPLASH_ACCESS_KEY;
-if (!API_KEY) {
-  console.error("UNSPLASH_ACCESS_KEY not found in .env");
-  process.exit(1);
-}
-
-const REGIONS = {
-  brest: ["Brest Belarus", "Brest fortress Belarus", "Brest city"],
-  vitebsk: ["Vitebsk Belarus", "Vitebsk city architecture"],
-  gomel: ["Gomel Belarus city"],
-  grodno: ["Grodno Belarus", "Grodno castle architecture"],
-  minsk: ["Minsk Belarus city"],
-  mogilev: ["Mogilev Belarus city"],
-};
-
-const PLACES = {
-  "belovezhskaya": ["Belovezhskaya Pushcha", "Bialowieza Forest Belarus"],
-  "mir-castle": ["Mir Castle Belarus"],
-  "nesvizh-castle": ["Nesvizh Castle Belarus", "Radziwill castle Nesvizh"],
-  "braslav-lakes": ["Braslav lakes Belarus"],
-  "dudutki": ["Dudutki museum Belarus"],
-  "khatyn": ["Khatyn memorial Belarus"],
-  "augustow-canal": ["Augustow canal Belarus"],
-  "narochansky": ["Naroch lake Belarus"],
-  "pripyatsky": ["Pripyat national park Belarus", "Polesie Belarus nature"],
-  "struve-arc": ["Struve geodetic arc Belarus"],
-  "brest-fortress": ["Brest fortress memorial", "Brest fortress hero"],
-  "sophia-cathedral": ["Sophia cathedral Polotsk Belarus"],
-  "baranovichi": ["Baranovichi Belarus city"],
-  "pinsk": ["Pinsk Belarus", "Pinsk Polesie"],
-  "kobrin": ["Kobrin Belarus"],
-  "orsha": ["Orsha Belarus city"],
-  "polotsk": ["Polotsk Belarus", "Polotsk ancient city"],
-  "mozyr": ["Mozyr Belarus", "Mozyr hills"],
-  "lida": ["Lida castle Belarus"],
-  "slonim": ["Slonim Belarus"],
-  "novogrudok": ["Novogrudok Belarus castle"],
-  "borisov": ["Borisov Belarus Berezina"],
-  "soligorsk": ["Soligorsk Belarus salt mine"],
-  "slutsk": ["Slutsk Belarus belt"],
-  "bobruysk": ["Bobruysk Belarus fortress"],
-  "mogilev-city": ["Mogilev Belarus city hall"],
-};
+const sharp = require("sharp");
 
 const PHOTOS_DIR = path.join(__dirname, "..", "src", "photos");
 const INDEX_PATH = path.join(__dirname, "..", "src", "data", "photos.json");
-const PER_PAGE_1 = 30;
-const PER_PAGE_2 = 10;
+const WEBP_QUALITY = 80;
+const MAX_WIDTH = 800;
 
-function fetchJSON(url) {
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function httpsGet(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { "Accept-Version": "v1" } }, (res) => {
+    https.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "ru,en;q=0.5",
+      },
+      timeout: 15000,
+    }, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode))
+        return httpsGet(res.headers.location).then(resolve, reject);
+      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
       let body = "";
       res.on("data", (c) => (body += c));
-      res.on("end", () => {
-        if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}: ${body.slice(0, 200)}`));
-        resolve(JSON.parse(body));
-      });
+      res.on("end", () => resolve(body));
       res.on("error", reject);
     }).on("error", reject);
   });
 }
 
-function downloadFile(url, dest) {
+function downloadBuffer(url) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, (res) => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
-        file.close();
-        fs.unlinkSync(dest);
-        return downloadFile(res.headers.location, dest).then(resolve, reject);
-      }
-      res.pipe(file);
-      file.on("finish", () => file.close(resolve));
-      file.on("error", reject);
-    }).on("error", (err) => {
-      fs.unlink(dest, () => {});
-      reject(err);
-    });
+    https.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+      timeout: 20000,
+    }, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode))
+        return downloadBuffer(res.headers.location).then(resolve, reject);
+      if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => resolve(Buffer.concat(chunks)));
+      res.on("error", reject);
+    }).on("error", reject);
   });
 }
 
-async function searchPhotos(query) {
-  const base =
-    `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}` +
-    `&orientation=landscape&content_filter=high&client_id=${API_KEY}`;
-
-  console.log(`  Fetching page 1 for "${query}"...`);
-  const data1 = await fetchJSON(`${base}&per_page=${PER_PAGE_1}&page=1`);
-  let photos = data1.results || [];
-
-  if (photos.length >= 20) {
-    console.log(`  Fetching page 2...`);
-    const data2 = await fetchJSON(`${base}&per_page=${PER_PAGE_2}&page=2`);
-    photos = photos.concat(data2.results || []);
+function extractYandexPhotos(html, maxCount = 10) {
+  const seen = new Set();
+  const urls = [];
+  const regex = /https:\/\/avatars\.mds\.yandex\.net\/get-altay\/\d+\/[a-f0-9]+/g;
+  let m;
+  while ((m = regex.exec(html)) !== null) {
+    const base = m[0];
+    if (seen.has(base)) continue;
+    seen.add(base);
+    urls.push(base + "/L_height");
   }
-
-  return photos.map((p) => ({
-    url: p.urls?.small,
-    author: p.user?.name || "",
-  }));
+  return urls.slice(0, maxCount);
 }
 
-async function downloadItem(itemId, queries) {
-  console.log(`\n[${itemId}] Searching Unsplash...`);
-  let photos = [];
-  for (const q of (Array.isArray(queries) ? queries : [queries])) {
-    const batch = await searchPhotos(q);
-    const existingUrls = new Set(photos.map((p) => p.url));
-    for (const p of batch) {
-      if (!existingUrls.has(p.url)) { photos.push(p); existingUrls.add(p.url); }
-    }
-    if (photos.length >= 35) break;
-    await new Promise((r) => setTimeout(r, 500));
+async function searchYandexMaps(query, lat, lon) {
+  const ll = `${lon},${lat}`;
+  const spn = "0.08,0.08";
+  const url = `https://yandex.by/maps/?text=${encodeURIComponent(query)}&ll=${ll}&spn=${spn}&z=14`;
+  try {
+    const html = await httpsGet(url);
+    return extractYandexPhotos(html);
+  } catch (err) {
+    console.log(`    search err: ${err.message}`);
+    return [];
   }
-  console.log(`  Found ${photos.length} photos total`);
+}
 
-  const dir = path.join(PHOTOS_DIR, itemId);
-  fs.mkdirSync(dir, { recursive: true });
-
-  const paths = [];
-  for (let i = 0; i < photos.length; i++) {
-    const p = photos[i];
-    if (!p.url) continue;
-    const filename = String(i + 1).padStart(2, "0") + ".jpg";
-    const filePath = path.join(dir, filename);
-    const relPath = `photos/${itemId}/${filename}`;
-
-    process.stdout.write(`  Downloading ${i + 1}/${photos.length}...`);
-    try {
-      await downloadFile(p.url, filePath);
-      paths.push(relPath);
-      process.stdout.write(" OK\n");
-    } catch (err) {
-      process.stdout.write(` FAIL: ${err.message}\n`);
-    }
+async function downloadAndConvert(url, dest) {
+  try {
+    const buf = await downloadBuffer(url);
+    if (buf.length < 2000) return false;
+    await sharp(buf)
+      .resize({ width: MAX_WIDTH, withoutEnlargement: true })
+      .webp({ quality: WEBP_QUALITY })
+      .toFile(dest);
+    return true;
+  } catch {
+    try { fs.unlinkSync(dest); } catch {}
+    return false;
   }
-  return paths;
+}
+
+function photoHash(url) {
+  const m = url.match(/\/([a-f0-9]{20,})/);
+  return m ? m[1] : url;
+}
+
+function slugify(name) {
+  return name
+    .toLowerCase()
+    .replace(/[ёе]/g, "e").replace(/[а]/g, "a").replace(/[б]/g, "b").replace(/[в]/g, "v")
+    .replace(/[г]/g, "g").replace(/[д]/g, "d").replace(/[ж]/g, "zh").replace(/[з]/g, "z")
+    .replace(/[и]/g, "i").replace(/[й]/g, "y").replace(/[к]/g, "k").replace(/[л]/g, "l")
+    .replace(/[м]/g, "m").replace(/[н]/g, "n").replace(/[о]/g, "o").replace(/[п]/g, "p")
+    .replace(/[р]/g, "r").replace(/[с]/g, "s").replace(/[т]/g, "t").replace(/[у]/g, "u")
+    .replace(/[ф]/g, "f").replace(/[х]/g, "kh").replace(/[ц]/g, "ts").replace(/[ч]/g, "ch")
+    .replace(/[ш]/g, "sh").replace(/[щ]/g, "shch").replace(/[ъьы]/g, "").replace(/[э]/g, "e")
+    .replace(/[ю]/g, "yu").replace(/[я]/g, "ya")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function loadCountries() {
+  const code = fs.readFileSync(path.join(__dirname, "..", "src", "data", "countries.js"), "utf-8");
+  const fn = new Function("window", code + "; return window.WEATHER_COUNTRIES;");
+  const w = {};
+  return fn(w);
+}
+
+async function processItem(regionId, itemId, itemName, highlights, isPlace, lat, lon) {
+  const baseDir = isPlace
+    ? path.join(PHOTOS_DIR, "places", itemId)
+    : path.join(PHOTOS_DIR, regionId, itemId);
+  const cityDir = path.join(baseDir, "_city");
+  fs.mkdirSync(cityDir, { recursive: true });
+
+  const result = { city: [], highlights: {} };
+  const usedHashes = new Set();
+
+  const cityQuery = `${itemName} город достопримечательности`;
+  process.stdout.write(`  ${itemName}: city`);
+  const cityPhotos = await searchYandexMaps(cityQuery, lat, lon);
+  await sleep(800);
+
+  let cityIdx = 0;
+  for (const url of cityPhotos.slice(0, 6)) {
+    if (cityIdx >= 3) break;
+    const h = photoHash(url);
+    if (usedHashes.has(h)) continue;
+    cityIdx++;
+    usedHashes.add(h);
+    const fn = String(cityIdx).padStart(2, "0") + ".webp";
+    const fp = path.join(cityDir, fn);
+    if (await downloadAndConvert(url, fp)) {
+      result.city.push(path.relative(path.join(__dirname, "..", "src"), fp).replace(/\\/g, "/"));
+      process.stdout.write(".");
+    } else {
+      process.stdout.write("x");
+    }
+    await sleep(300);
+  }
+
+  for (const hl of highlights) {
+    const hlName = typeof hl === "string" ? hl : hl.name;
+    if (!hlName) continue;
+    const slug = slugify(hlName);
+    const hlFile = path.join(baseDir, slug + ".webp");
+
+    const query = `${hlName} ${itemName}`;
+    process.stdout.write(` hl`);
+    const photos = await searchYandexMaps(query, lat, lon);
+    await sleep(800);
+
+    let saved = false;
+    for (const url of photos) {
+      const h = photoHash(url);
+      if (usedHashes.has(h)) continue;
+      usedHashes.add(h);
+      if (await downloadAndConvert(url, hlFile)) {
+        result.highlights[hlName] = path.relative(path.join(__dirname, "..", "src"), hlFile).replace(/\\/g, "/");
+        process.stdout.write(".");
+        saved = true;
+        break;
+      }
+    }
+    if (!saved) process.stdout.write(photos.length ? "x" : "-");
+    await sleep(300);
+  }
+
+  console.log(` => ${result.city.length}c + ${Object.keys(result.highlights).length}h`);
+  return result;
 }
 
 async function main() {
-  const onlyNew = process.argv.includes("--only-new");
-  console.log("=== Unsplash Photo Downloader ===");
-  console.log(`Output: ${PHOTOS_DIR}`);
+  const onlyId = process.argv.find((a) => a.startsWith("--id="))?.split("=")[1];
+  const force = process.argv.includes("--force");
+  console.log(`=== Yandex Maps → WebP Downloader (geo-bound) ===${force ? " [FORCE]" : ""}\n`);
+
+  const countries = loadCountries();
+  const BY = countries.BY;
 
   let index = {};
-  if (fs.existsSync(INDEX_PATH)) {
+  if (!force && fs.existsSync(INDEX_PATH)) {
     try { index = JSON.parse(fs.readFileSync(INDEX_PATH, "utf-8")); } catch {}
   }
+  if (typeof index !== "object" || Array.isArray(index)) index = {};
 
-  const allItems = { ...REGIONS, ...PLACES };
-
-  for (const [id, query] of Object.entries(allItems)) {
-    if (onlyNew && index[id]?.length) {
-      console.log(`[${id}] Already has ${index[id].length} photos, skipping`);
-      continue;
+  for (const region of BY.regions) {
+    console.log(`\n=== ${region.id.toUpperCase()} ===`);
+    for (const city of region.cities) {
+      if (onlyId && city.id !== onlyId) continue;
+      if (!force && index[city.id]?.city?.length > 0 && Object.keys(index[city.id]?.highlights || {}).length > 0) {
+        console.log(`  [${city.id}] already done, skip`);
+        continue;
+      }
+      index[city.id] = await processItem(region.id, city.id, city.name, city.highlights || [], false, city.lat, city.lon);
+      fs.writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2));
     }
-    index[id] = await downloadItem(id, query);
-    await new Promise((r) => setTimeout(r, 1000));
   }
 
-  fs.writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2));
-  console.log(`\nIndex saved to ${INDEX_PATH}`);
+  console.log(`\n=== PLACES ===`);
+  for (const place of (BY.places || [])) {
+    if (onlyId && place.id !== onlyId) continue;
+    if (!force && index[place.id]?.city?.length > 0 && Object.keys(index[place.id]?.highlights || {}).length > 0) {
+      console.log(`  [${place.id}] already done, skip`);
+      continue;
+    }
+    index[place.id] = await processItem("places", place.id, place.name, place.highlights || [], true, place.lat, place.lon);
+    fs.writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2));
+  }
 
-  const total = Object.values(index).reduce((s, a) => s + a.length, 0);
-  console.log(`Total: ${total} photos for ${Object.keys(index).length} items`);
+  const totalCity = Object.values(index).reduce((s, v) => s + (v?.city?.length || 0), 0);
+  const totalHl = Object.values(index).reduce((s, v) => s + Object.keys(v?.highlights || {}).length, 0);
+  console.log(`\nDone: ${totalCity} city photos + ${totalHl} highlight photos for ${Object.keys(index).length} items`);
 }
 
-main().catch((err) => {
-  console.error("Fatal error:", err);
-  process.exit(1);
-});
+main().catch((err) => { console.error(err); process.exit(1); });
