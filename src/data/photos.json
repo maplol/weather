@@ -1,4 +1,17 @@
 {
+  "khatyn": {
+    "city": [
+      "photos/places/khatyn/_city/01.webp",
+      "photos/places/khatyn/_city/02.webp",
+      "photos/places/khatyn/_city/03.webp"
+    ],
+    "highlights": {
+      "Музей памяти белорусского народа": "photos/places/khatyn/muzey-pamyati-belorusskogo-naroda.webp",
+      "«Непокорённый человек»": "photos/places/khatyn/nepokorenny-chelovek.webp",
+      "Кладбище деревень": "photos/places/khatyn/kladbishche-dereven.webp",
+      "Колокола Хатыни": "photos/places/khatyn/kolokola-khatni.webp"
+    }
+  },
   "brest-city": {
     "city": [
       "photos/brest/brest-city/_city/01.webp",
@@ -127,6 +140,7 @@
     "highlights": {
       "Троицкий костёл": "photos/vitebsk/glubokoye/troitskiy-kostel.webp",
       "Собор Рождества Богородицы": "photos/vitebsk/glubokoye/sobor-rozhdestva-bogorodits.webp",
+      "Глубокский МКК": "photos/vitebsk/glubokoye/glubokskiy-mkk.webp",
       "Фестиваль вишни": "photos/vitebsk/glubokoye/festival-vishni.webp"
     }
   },
@@ -217,7 +231,7 @@
     ],
     "highlights": {
       "Лидский замок": "photos/grodno/lida/lidskiy-zamok.webp",
-      "Лидский пивзавод": "photos/grodno/lida/lidskiy-pivzavod.webp",
+      "Музей «Лидское пиво»": "photos/grodno/lida/muzey-lidskoe-pivo.webp",
       "Крестовоздвиженский костёл": "photos/grodno/lida/krestovozdvizhenskiy-kostel.webp",
       "Собор Михаила Архангела": "photos/grodno/lida/sobor-mikhaila-arkhangela.webp"
     }
@@ -459,18 +473,6 @@
       "Мельница": "photos/places/dudutki/melnitsa.webp"
     }
   },
-  "khatyn": {
-    "city": [
-      "photos/places/khatyn/_city/01.webp",
-      "photos/places/khatyn/_city/02.webp",
-      "photos/places/khatyn/_city/03.webp"
-    ],
-    "highlights": {
-      "«Непокорённый человек»": "photos/places/khatyn/nepokorenny-chelovek.webp",
-      "Кладбище деревень": "photos/places/khatyn/kladbishche-dereven.webp",
-      "Колокола Хатыни": "photos/places/khatyn/kolokola-khatni.webp"
-    }
-  },
   "augustow-canal": {
     "city": [
       "photos/places/augustow-canal/_city/01.webp",
@@ -540,6 +542,54 @@
       "Концерты органной музыки": "photos/places/sophia-cathedral/kontsert-organnoy-muzki.webp",
       "Фрески XI века": "photos/places/sophia-cathedral/freski-xi-veka.webp",
       "Борисов камень": "photos/places/sophia-cathedral/borisov-kamen.webp"
+    }
+  },
+  "kossovo-palace": {
+    "city": [
+      "photos/places/kossovo-palace/_city/01.webp",
+      "photos/places/kossovo-palace/_city/02.webp",
+      "photos/places/kossovo-palace/_city/03.webp"
+    ],
+    "highlights": {
+      "12 башен дворца": "photos/places/kossovo-palace/12-bashen-dvortsa.webp",
+      "Дворцовый парк": "photos/places/kossovo-palace/dvortsovy-park.webp",
+      "Дом-музей Костюшко": "photos/places/kossovo-palace/dom-muzey-kostyushko.webp"
+    }
+  },
+  "ruzhany-palace": {
+    "city": [
+      "photos/places/ruzhany-palace/_city/01.webp",
+      "photos/places/ruzhany-palace/_city/02.webp",
+      "photos/places/ruzhany-palace/_city/03.webp"
+    ],
+    "highlights": {
+      "Въездная арка": "photos/places/ruzhany-palace/vezdnaya-arka.webp",
+      "Восточный флигель": "photos/places/ruzhany-palace/vostochny-fligel.webp",
+      "Западный флигель": "photos/places/ruzhany-palace/zapadny-fligel.webp"
+    }
+  },
+  "yelnya-bog": {
+    "city": [
+      "photos/places/yelnya-bog/_city/01.webp",
+      "photos/places/yelnya-bog/_city/02.webp",
+      "photos/places/yelnya-bog/_city/03.webp"
+    ],
+    "highlights": {
+      "Экотропа по болоту": "photos/places/yelnya-bog/ekotropa-po-bolotu.webp",
+      "Прогулки в болотоступах": "photos/places/yelnya-bog/progulki-v-bolotostupakh.webp",
+      "Озёра среди болота": "photos/places/yelnya-bog/ozera-sredi-bolota.webp"
+    }
+  },
+  "zalesye-oginski": {
+    "city": [
+      "photos/places/zalesye-oginski/_city/01.webp",
+      "photos/places/zalesye-oginski/_city/02.webp",
+      "photos/places/zalesye-oginski/_city/03.webp"
+    ],
+    "highlights": {
+      "Дворец Огинского": "photos/places/zalesye-oginski/dvorets-oginskogo.webp",
+      "Парк «Северные Афины»": "photos/places/zalesye-oginski/park-severne-afin.webp",
+      "Оранжерея": "photos/places/zalesye-oginski/oranzhereya.webp"
     }
   }
 }

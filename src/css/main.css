@@ -208,3 +208,22 @@ html:not(.dark) #focus-svg .city-label {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #555;
 }
+
+#hl-markers-focus .hl-dot {
+  transition: opacity 0.15s ease;
+}
+#hl-markers-focus .hl-active .hl-dot {
+  r: 2;
+  fill: #2dd4bf;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px #14b8a6);
+}
+#hl-markers-focus .hl-active .hl-ring {
+  r: 3.5;
+  opacity: 0.4;
+  animation: hl-ping 1s ease-in-out infinite;
+}
+@keyframes hl-ping {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0; }
+}

@@ -7,9 +7,21 @@
 	<title>WBelarus — Way & Weather</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+	<link rel="preconnect" href="https://api.open-meteo.com" crossorigin />
+	<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet" />
 	<link rel="icon" href="favicon.svg" type="image/svg+xml" />
 	<link rel="stylesheet" href="css/styles.css" />
+	<meta name="description"
+		content="WBelarus — интерактивная карта Беларуси с погодой, достопримечательностями и маршрутами путешествий" />
+	<meta name="theme-color" content="#0f1419" media="(prefers-color-scheme: dark)" />
+	<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+	<link rel="dns-prefetch" href="https://www.gstatic.com" />
+	<link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+	<link rel="preload" href="data/belarus-gadm.json" as="fetch" crossorigin />
+	<link rel="preload" href="data/belarus-gadm2.json" as="fetch" crossorigin />
+	<link rel="prefetch" href="data/photos.json" />
 	<script>
 		const t = localStorage.getItem("theme");
 		if (t === "light" || (!t && window.matchMedia("(prefers-color-scheme: light)").matches))
@@ -64,17 +76,27 @@
 				</svg>
 				<span class="hidden sm:inline">Сбросить</span>
 			</button>
-			<div id="auth-wrap" class="absolute top-4 left-4 z-[105] flex items-center gap-2 opacity-0 transition-opacity duration-300">
+			<div id="auth-wrap"
+				class="absolute top-4 left-4 z-[105] flex items-center gap-2 pointer-events-none opacity-0 transition-opacity duration-300">
+				<div id="auth-loading"
+					class="w-9 h-9 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-sm border border-white/30 dark:border-white/10 shadow-lg animate-pulse">
+				</div>
 				<button id="auth-btn"
-					class="hidden flex items-center gap-2 px-3 py-2 bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
+					class="hidden items-center gap-2 px-3 py-2 bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 text-xs font-semibold rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
 					aria-label="Войти">
-					<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+					<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round">
+						<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+						<circle cx="12" cy="7" r="4" />
+					</svg>
 					<span id="auth-label">Войти</span>
 				</button>
-				<img id="auth-avatar" class="hidden w-9 h-9 rounded-full border-2 border-white/50 shadow-lg cursor-pointer" alt="avatar" title="Личный кабинет" />
+				<img id="auth-avatar"
+					class="hidden w-9 h-9 rounded-full border-2 border-white/50 shadow-lg cursor-pointer" alt="avatar"
+					title="Личный кабинет" />
 			</div>
 			<button id="theme-toggle"
-				class="absolute bottom-6 left-4 z-[105] w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
+				class="fixed bottom-6 left-4 z-[9999] w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-white/10 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-xl shadow-lg border border-white/50 dark:border-white/10 hover:bg-teal-50 dark:hover:bg-white/20 active:scale-95 transition-all"
 				aria-label="Переключить тему">
 				<svg id="theme-icon-sun" class="w-5 h-5 hidden dark:block" viewBox="0 0 24 24" fill="none"
 					stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -94,7 +116,7 @@
 	</main>
 
 	<div id="detail-overlay"
-		class="fixed inset-0 z-[100] opacity-0 invisible transition-all duration-300 pointer-events-none data-[visible=true]:opacity-100 data-[visible=true]:visible data-[visible=true]:pointer-events-auto"
+		class="fixed inset-0 z-[100] pointer-events-none opacity-0 invisible transition-all duration-300 data-[visible=true]:opacity-100 data-[visible=true]:visible"
 		data-visible="false" aria-hidden="true"></div>
 	<aside id="detail-panel" role="dialog" aria-modal="true" aria-label="Информация о регионе"
 		class="fixed top-0 right-0 w-full sm:w-[min(400px,90vw)] max-w-full h-full bg-gradient-to-b from-white to-gray-50 dark:from-[#1a2233] dark:to-[#111827] z-[101] shadow-[-8px_0_40px_rgba(0,0,0,0.15)] overflow-y-auto transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] translate-x-full data-[visible=true]:translate-x-0"
@@ -140,13 +162,16 @@
 		</div>
 		<div id="detail-tabs" class="hidden px-6 sm:px-8 pt-3 pb-0">
 			<div class="flex gap-1 p-0.5 bg-gray-100 dark:bg-white/5 rounded-xl">
-				<button data-tab="info" class="detail-tab flex-1 py-2 text-xs font-semibold rounded-lg transition-colors bg-white dark:bg-white/15 text-gray-800 dark:text-white shadow-sm">Места</button>
-				<button data-tab="weather" class="detail-tab flex-1 py-2 text-xs font-semibold rounded-lg transition-colors text-gray-400 dark:text-gray-500">Погода</button>
+				<button data-tab="info"
+					class="detail-tab flex-1 py-2 text-xs font-semibold rounded-lg transition-colors bg-white dark:bg-white/15 text-gray-800 dark:text-white shadow-sm">Места</button>
+				<button data-tab="weather"
+					class="detail-tab flex-1 py-2 text-xs font-semibold rounded-lg transition-colors text-gray-400 dark:text-gray-500">Погода</button>
 			</div>
 		</div>
 		<div id="tab-info" class="flex flex-col">
 			<div id="city-about" class="hidden px-6 sm:px-8 pt-4 pb-2">
-				<p id="city-about-text" class="m-0 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed"></p>
+				<p id="city-about-text" class="m-0 text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+				</p>
 			</div>
 			<div id="city-rating" class="hidden px-6 sm:px-8 pb-2">
 				<div class="flex items-center gap-2">
@@ -157,11 +182,16 @@
 			<div id="city-highlights" class="hidden px-6 sm:px-8 pb-2">
 				<div class="flex items-center justify-between gap-3 mb-1.5">
 					<h4 class="text-xs font-bold text-gray-600 dark:text-gray-300">Что посетить</h4>
-				<div id="city-highlights-filter" class="hidden items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/5 p-0.5">
-					<button id="city-highlights-all" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md bg-white dark:bg-white/15 text-gray-700 dark:text-gray-200 shadow-sm transition-colors">Все</button>
-					<button id="city-highlights-interest" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">По интересам</button>
-					<button id="city-highlights-visited" class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">Посещено</button>
-				</div>
+					<div id="city-highlights-filter"
+						class="hidden items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/5 p-0.5">
+						<button id="city-highlights-all"
+							class="px-2 py-1 text-[0.65rem] font-semibold rounded-md bg-white dark:bg-white/15 text-gray-700 dark:text-gray-200 shadow-sm transition-colors">Все</button>
+						<button id="city-highlights-interest"
+							class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">По
+							интересам</button>
+						<button id="city-highlights-visited"
+							class="px-2 py-1 text-[0.65rem] font-semibold rounded-md text-gray-400 dark:text-gray-500 transition-colors">Посещено</button>
+					</div>
 				</div>
 				<div id="city-highlights-list" class="flex flex-col gap-1"></div>
 			</div>
@@ -172,19 +202,30 @@
 				<div class="flex gap-2">
 					<button id="visited-btn"
 						class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all active:scale-[0.97] bg-teal-500 hover:bg-teal-600 text-white shadow-md shadow-teal-500/20">
-						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+							stroke-linecap="round" stroke-linejoin="round">
+							<path d="M12 5v14M5 12h14" />
+						</svg>
 						<span>Я тут был</span>
 					</button>
 					<button id="unvisit-btn"
 						class="hidden w-10 h-10 shrink-0 flex items-center justify-center rounded-xl text-sm transition-all active:scale-[0.97] bg-red-50 dark:bg-red-500/10 text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200/50 dark:border-red-500/20"
 						aria-label="Убрать посещение" title="Убрать из посещённых">
-						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							stroke-linecap="round" stroke-linejoin="round">
+							<path
+								d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+						</svg>
 					</button>
 				</div>
 			</div>
 			<div id="secret-fact" class="hidden px-6 sm:px-8 pb-2">
-				<div class="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/50 dark:border-amber-500/20">
-					<svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+				<div
+					class="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/50 dark:border-amber-500/20">
+					<svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
+						<path
+							d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+					</svg>
 					<p id="secret-fact-text" class="m-0 text-xs text-amber-800 dark:text-amber-300 leading-relaxed"></p>
 				</div>
 			</div>
@@ -229,7 +270,8 @@
 			<div class="mb-4">
 				<h3 class="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3">Посещённые города</h3>
 				<div id="profile-visited-list" class="flex flex-col gap-2"></div>
-				<p id="profile-empty" class="hidden text-xs text-gray-400 dark:text-gray-500 italic">Вы ещё не отметили ни одного города</p>
+				<p id="profile-empty" class="hidden text-xs text-gray-400 dark:text-gray-500 italic">Вы ещё не отметили
+					ни одного города</p>
 			</div>
 			<div class="mb-4">
 				<h3 class="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3">Мои интересы</h3>
@@ -238,20 +280,30 @@
 			<div class="mb-4">
 				<h3 class="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3">Маршрут путешествия</h3>
 				<div id="route-section">
-					<div id="route-type-toggle" class="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mb-2 text-xs font-semibold">
-						<button data-route-type="oneway" class="flex-1 py-1.5 px-2 bg-blue-500 text-white transition-colors">В одну сторону</button>
-						<button data-route-type="round" class="flex-1 py-1.5 px-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">+ Обратно</button>
+					<div id="route-type-toggle"
+						class="flex rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mb-2 text-xs font-semibold">
+						<button data-route-type="oneway"
+							class="flex-1 py-1.5 px-2 bg-blue-500 text-white transition-colors">В одну сторону</button>
+						<button data-route-type="round"
+							class="flex-1 py-1.5 px-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">+
+							Обратно</button>
 					</div>
 					<div id="route-buttons" class="flex gap-2">
 						<button id="build-route-btn"
 							class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-md active:scale-[0.97] transition-all">
-							<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6l6 6-6 6"/></svg>
+							<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								stroke-linecap="round" stroke-linejoin="round">
+								<path d="M3 12h18M3 6l6 6-6 6" />
+							</svg>
 							<span>Построить маршрут</span>
 						</button>
 						<button id="cancel-route-btn"
 							class="hidden w-10 h-10 shrink-0 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10 text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all active:scale-[0.97]"
 							title="Отменить маршрут">
-							<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+							<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+								stroke-linecap="round" stroke-linejoin="round">
+								<path d="M18 6L6 18M6 6l12 12" />
+							</svg>
 						</button>
 					</div>
 					<div id="route-result" class="hidden mt-3"></div>
@@ -259,27 +311,40 @@
 			</div>
 			<button id="profile-logout"
 				class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all active:scale-[0.97]">
-				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+				<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					stroke-linecap="round" stroke-linejoin="round">
+					<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+					<polyline points="16 17 21 12 16 7" />
+					<line x1="21" y1="12" x2="9" y2="12" />
+				</svg>
 				<span>Выйти</span>
 			</button>
 		</div>
 	</aside>
 
 	<div id="interests-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300] hidden"></div>
-	<div id="interests-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(400px,90vw)] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[301] p-6 sm:p-8 hidden">
+	<div id="interests-modal"
+		class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(400px,90vw)] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[301] p-6 sm:p-8 hidden">
 		<h2 class="text-lg font-bold text-gray-800 dark:text-white mb-1">Что вам интересно?</h2>
 		<p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Выберите темы, чтобы мы составили идеальный маршрут</p>
 		<div id="interests-grid" class="grid grid-cols-2 gap-2 mb-5"></div>
-		<button id="interests-save" class="w-full py-2.5 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white shadow-md transition-all active:scale-[0.97]">Готово</button>
+		<button id="interests-save"
+			class="w-full py-2.5 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white shadow-md transition-all active:scale-[0.97]">Готово</button>
 	</div>
 
 	<div id="hl-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[400] hidden"></div>
-	<div id="hl-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,92vw)] max-h-[85dvh] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[401] overflow-hidden hidden flex flex-col">
+	<div id="hl-modal"
+		class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(420px,92vw)] max-h-[85dvh] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[401] overflow-hidden hidden flex flex-col">
 		<div id="hl-modal-photo" class="w-full h-64 relative shrink-0 overflow-hidden bg-gray-200 dark:bg-white/10">
-			<div id="hl-modal-photo-blur" class="absolute inset-0 bg-cover bg-center scale-110 blur-xl opacity-60"></div>
+			<div id="hl-modal-photo-blur" class="absolute inset-0 bg-cover bg-center scale-110 blur-xl opacity-60">
+			</div>
 			<img id="hl-modal-photo-img" class="relative w-full h-full object-contain z-10" alt="">
-			<button id="hl-modal-close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors z-20" aria-label="Закрыть">
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+			<button id="hl-modal-close"
+				class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-sm transition-colors z-20"
+				aria-label="Закрыть">
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+					<path d="M18 6 6 18M6 6l12 12" />
+				</svg>
 			</button>
 		</div>
 		<div class="p-5 flex flex-col gap-3 overflow-y-auto">
@@ -289,29 +354,52 @@
 			<div class="flex items-center justify-between">
 				<p id="hl-modal-city" class="text-xs text-gray-400 dark:text-gray-500"></p>
 				<div class="flex items-center gap-1.5">
-					<button id="hl-modal-delete-btn" class="hidden w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all active:scale-95" aria-label="Убрать из посещённых" title="Убрать из посещённых">
-						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+					<a id="hl-modal-map-btn"
+						class="hidden w-7 h-7 flex items-center justify-center rounded-lg text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all active:scale-95"
+						target="_blank" rel="noopener" aria-label="Показать на Яндекс Картах"
+						title="Показать на Яндекс Картах">
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							stroke-linecap="round" stroke-linejoin="round">
+							<path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
+							<circle cx="12" cy="10" r="3" />
+						</svg>
+					</a>
+					<button id="hl-modal-delete-btn"
+						class="hidden w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all active:scale-95"
+						aria-label="Убрать из посещённых" title="Убрать из посещённых">
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							stroke-linecap="round" stroke-linejoin="round">
+							<path
+								d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+						</svg>
 					</button>
-					<button id="hl-modal-visit-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"></button>
+					<button id="hl-modal-visit-btn"
+						class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"></button>
 				</div>
 			</div>
 		</div>
 	</div>
 
 	<div id="visit-date-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[450] hidden"></div>
-	<div id="visit-date-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(340px,88vw)] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[451] p-5 sm:p-6 hidden">
+	<div id="visit-date-modal"
+		class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(340px,88vw)] bg-white dark:bg-[#1a2233] rounded-2xl shadow-2xl z-[451] p-5 sm:p-6 hidden">
 		<h3 class="text-base font-bold text-gray-800 dark:text-white mb-1">Когда вы посетили?</h3>
 		<p class="text-xs text-gray-400 dark:text-gray-500 mb-4">Выберите дату или нажмите «Сейчас»</p>
 		<div class="flex flex-col gap-3">
 			<div class="flex gap-2">
-				<input id="visit-date-input" type="date" class="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
-				<input id="visit-time-input" type="time" class="w-[100px] px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
+				<input id="visit-date-input" type="date"
+					class="flex-1 px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
+				<input id="visit-time-input" type="time"
+					class="w-[100px] px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-sm text-gray-700 dark:text-gray-200 outline-none focus:border-teal-500 dark:focus:border-teal-500 transition-colors" />
 			</div>
 			<div class="flex gap-2">
-				<button id="visit-date-now" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white shadow-md transition-all active:scale-[0.97]">Сейчас</button>
-				<button id="visit-date-save" class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all active:scale-[0.97]">Сохранить</button>
+				<button id="visit-date-now"
+					class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-teal-500 hover:bg-teal-600 text-white shadow-md transition-all active:scale-[0.97]">Сейчас</button>
+				<button id="visit-date-save"
+					class="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all active:scale-[0.97]">Сохранить</button>
 			</div>
-			<button id="visit-date-cancel" class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">Отмена</button>
+			<button id="visit-date-cancel"
+				class="w-full py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5 transition-all">Отмена</button>
 		</div>
 	</div>
 

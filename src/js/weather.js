@@ -65,9 +65,7 @@
   }
 
   function esc(str) {
-    const el = document.createElement("span");
-    el.textContent = String(str);
-    return el.innerHTML;
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
   function fmtDate(raw) {
@@ -207,6 +205,12 @@
     next.style.opacity = "1";
     cur.style.opacity = "0";
 
+    const nextIdx = (idx + 1) % _slider.photos.length;
+    if (_slider.photos[nextIdx] && nextIdx !== idx) {
+      const preload = new Image();
+      preload.src = _slider.photos[nextIdx];
+    }
+
     setTimeout(() => {
       cur.style.backgroundImage = `url(${src})`;
       cur.style.opacity = "1";
@@ -274,7 +278,10 @@
     return code ? `${OWM_ICON}/${code}@2x.png` : "";
   }
 
+  const _iconCache = new Map();
   function animatedIcon(code, size = 72) {
+    const cacheKey = (code || "") + "-" + size;
+    if (_iconCache.has(cacheKey)) return _iconCache.get(cacheKey);
     const s = size;
     const half = s / 2;
     const isNight = code?.endsWith("n");
@@ -304,7 +311,9 @@
       default: content = sun;
     }
 
-    return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-lg">${content}</svg>`;
+    const result = `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-lg">${content}</svg>`;
+    _iconCache.set(cacheKey, result);
+    return result;
   }
 
   function locale() {
@@ -520,16 +529,22 @@
     return cachedFetch(`forecast:${region?.id ?? region?.apiName}`, () => _fetchForecast10d(region));
   }
 
+  let _allCitiesCache = null;
+  let _placesCache = null;
   function getAllCities() {
+    if (_allCitiesCache) return _allCitiesCache;
     const all = [];
     for (const region of (countries[currentCountry]?.regions || [])) {
       for (const city of (region.cities || [])) all.push(city);
     }
+    _allCitiesCache = all;
     return all;
   }
 
   function getPlaces() {
-    return countries[currentCountry]?.places || [];
+    if (_placesCache) return _placesCache;
+    _placesCache = countries[currentCountry]?.places || [];
+    return _placesCache;
   }
 
   function updateVisitedUI() {
@@ -612,6 +627,70 @@
       });
       g.appendChild(marker);
     }
+  }
+
+  let _hlMarkerCity = null;
+  function clearHighlightMarkers() {
+    const g = document.getElementById("hl-markers-focus");
+    if (g) g.remove();
+    _hlMarkerCity = null;
+  }
+
+  function renderHighlightMarkers(city, hlPhotosMap) {
+    const focusSvg = document.getElementById("focus-svg");
+    if (!focusSvg) return;
+    clearHighlightMarkers();
+    _hlMarkerCity = city.id;
+    const highlights = city.highlights || [];
+    if (!highlights.length) return;
+    const ns = "http://www.w3.org/2000/svg";
+    const g = document.createElementNS(ns, "g");
+    g.id = "hl-markers-focus";
+    g.style.pointerEvents = "auto";
+    focusSvg.appendChild(g);
+    const tip = document.getElementById("region-tooltip");
+    highlights.forEach((item, idx) => {
+      if (item.lat == null || item.lon == null) return;
+      const [cx, cy] = lngLatToSvg(item.lon, item.lat);
+      const marker = document.createElementNS(ns, "g");
+      marker.setAttribute("data-hl-name", item.name);
+      marker.setAttribute("data-hl-idx", String(idx));
+      marker.style.cursor = "pointer";
+      marker.innerHTML = `<circle class="hl-ring" cx="${cx}" cy="${cy}" r="0" fill="#14b8a6" opacity="0" pointer-events="none"/><circle class="hl-dot" cx="${cx}" cy="${cy}" r="1.2" fill="#14b8a6" stroke="#fff" stroke-width="0.4" opacity="0.85"/>`;
+      marker.addEventListener("mouseenter", () => {
+        marker.classList.add("hl-active");
+        if (tip) {
+          tip.textContent = item.name;
+          const pt = focusSvg.createSVGPoint();
+          pt.x = cx; pt.y = cy;
+          const ctm = focusSvg.getScreenCTM();
+          if (ctm) {
+            const sp = pt.matrixTransform(ctm);
+            tip.style.left = (sp.x + 14) + "px";
+            tip.style.top = (sp.y - 10) + "px";
+          }
+          tip.setAttribute("data-visible", "true");
+          tip.setAttribute("aria-hidden", "false");
+        }
+        const card = document.querySelector(`.hl-card[data-hl-idx="${idx}"]`);
+        if (card) {
+          card.classList.add("ring-2", "ring-teal-400");
+          card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+      marker.addEventListener("mouseleave", () => {
+        marker.classList.remove("hl-active");
+        if (tip) { tip.setAttribute("data-visible", "false"); tip.setAttribute("aria-hidden", "true"); }
+        const card = document.querySelector(`.hl-card[data-hl-idx="${idx}"]`);
+        if (card) card.classList.remove("ring-2", "ring-teal-400");
+      });
+      marker.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const photo = hlPhotosMap?.[item.name] || "";
+        showHighlightModal(item, photo, city.name, city.id);
+      });
+      g.appendChild(marker);
+    });
   }
 
   function renderVisitedMarkers() {
@@ -1154,18 +1233,15 @@
   function setupAuthUI() {
     const authWrap = document.getElementById("auth-wrap");
     const authBtn = document.getElementById("auth-btn");
-    const authLabel = document.getElementById("auth-label");
     const authAvatar = document.getElementById("auth-avatar");
+    const authLoading = document.getElementById("auth-loading");
     if (!authBtn || !authWrap) return;
 
-    const app = window.wbApp;
-    if (!app) {
-      authWrap.classList.add("hidden");
-      return;
-    }
+    requestAnimationFrame(() => { authWrap.style.opacity = "1"; });
 
-    let firstCall = true;
-    app.onStateChange((user, data) => {
+    function onAuthResolved(user, data, isFirst) {
+      if (authLoading) authLoading.classList.add("hidden");
+      authWrap.classList.remove("pointer-events-none");
       if (user) {
         authBtn.classList.add("hidden");
         authBtn.classList.remove("flex");
@@ -1176,22 +1252,42 @@
         authBtn.classList.add("flex");
         authAvatar.classList.add("hidden");
       }
-      if (firstCall) {
-        requestAnimationFrame(() => authWrap.style.opacity = "1");
-        firstCall = false;
-        if (user && !data?.interests?.length) {
-          setTimeout(showInterestsModal, 500);
-        }
+      if (isFirst && user && !data?.interests?.length) {
+        setTimeout(showInterestsModal, 500);
       }
       renderVisitedMarkers();
       renderPOIMarkers();
       renderHomeMarker();
       updateVisitedUI();
       restoreSavedRoute();
-    });
+    }
 
-    authBtn.addEventListener("click", () => app.signIn());
-    authAvatar.addEventListener("click", () => openProfile());
+    function bindApp(app) {
+      let firstCall = true;
+      app.onStateChange((user, data) => {
+        onAuthResolved(user, data, firstCall);
+        firstCall = false;
+      });
+      authBtn.addEventListener("click", () => app.signIn());
+      authAvatar.addEventListener("click", () => openProfile());
+    }
+
+    if (window.wbApp) {
+      bindApp(window.wbApp);
+    } else {
+      const poll = setInterval(() => {
+        if (window.wbApp) { clearInterval(poll); bindApp(window.wbApp); }
+      }, 50);
+      setTimeout(() => {
+        clearInterval(poll);
+        if (!window.wbApp) {
+          if (authLoading) authLoading.classList.add("hidden");
+          authBtn.classList.remove("hidden");
+          authBtn.classList.add("flex");
+          authWrap.classList.remove("pointer-events-none");
+        }
+      }, 10000);
+    }
   }
 
   function setupVisitedBtn() {
@@ -1389,6 +1485,7 @@
     document.getElementById("detail-tabs")?.classList.add("hidden");
     _currentCityId = null;
     _currentCitySecret = null;
+    clearHighlightMarkers();
     if (_clearMapFocus) _clearMapFocus();
     if (_lastFocused && typeof _lastFocused.focus === "function") {
       _lastFocused.focus();
@@ -1465,6 +1562,19 @@
       return `<span class="text-xs px-2 py-1 rounded-lg font-medium ${m ? "bg-teal-500/15 text-teal-600 dark:text-teal-400" : "bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400"}">${esc(TAG_LABELS[t] || t)}</span>`;
     }).join("");
     cityEl.textContent = cityName;
+
+    const mapBtn = document.getElementById("hl-modal-map-btn");
+    if (mapBtn) {
+      if (item.lat != null && item.lon != null) {
+        mapBtn.href = `https://yandex.ru/maps/?pt=${item.lon},${item.lat}&z=17&text=${encodeURIComponent(item.name + ", " + cityName)}`;
+        mapBtn.classList.remove("hidden");
+        mapBtn.classList.add("flex");
+      } else {
+        mapBtn.href = `https://yandex.ru/maps/?text=${encodeURIComponent(item.name + ", " + cityName + ", Беларусь")}`;
+        mapBtn.classList.remove("hidden");
+        mapBtn.classList.add("flex");
+      }
+    }
 
     const app = window.wbApp;
     const deleteBtn = document.getElementById("hl-modal-delete-btn");
@@ -1677,7 +1787,7 @@
         const hlCount = window.wbApp?.getHighlightVisitCount?.(city.id, item.name) || 0;
         return `
           <div class="hl-card flex gap-2.5 p-2 rounded-xl cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${hlVisited ? "bg-amber-50/50 dark:bg-amber-500/5 ring-1 ring-amber-300/50 dark:ring-amber-500/20" : matched ? "bg-teal-50/50 dark:bg-teal-500/5 ring-1 ring-teal-300/40 dark:ring-teal-500/20" : "ring-1 ring-gray-200/60 dark:ring-white/5"}" data-hl-idx="${idx}">
-            <div class="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `style="background-image:url('${esc(photo)}')"` : ""}>
+            <div class="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden ${photo ? "bg-cover bg-center bg-gray-200/50 dark:bg-white/10" : "bg-gray-200/50 dark:bg-white/10 flex items-center justify-center"}" ${photo ? `data-bg="${esc(photo)}"` : ""}>
               ${photo ? "" : `<svg class="w-5 h-5 text-gray-300 dark:text-gray-600" viewBox="0 0 24 24" fill="currentColor"><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0z"/><circle cx="12" cy="11" r="3" fill="white"/></svg>`}
               ${hlVisited ? `<div class="absolute top-1 right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[0.5rem] font-bold text-white">${hlCount > 1 ? hlCount : `<svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>`}</div>` : ""}
             </div>
@@ -1692,15 +1802,44 @@
         `;
       }).join("");
 
+      const panel = document.getElementById("detail-panel");
+      const lazyObs = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const el = entry.target;
+            const bg = el.getAttribute("data-bg");
+            if (bg) { el.style.backgroundImage = `url('${bg}')`; el.removeAttribute("data-bg"); }
+            lazyObs.unobserve(el);
+          }
+        }
+      }, { root: panel, rootMargin: "200px" });
+      hlList.querySelectorAll("[data-bg]").forEach((el) => lazyObs.observe(el));
+
       hlList.querySelectorAll(".hl-card").forEach((card) => {
         card.addEventListener("click", () => {
           const idx = parseInt(card.getAttribute("data-hl-idx"), 10);
           const item = visibleHighlights[idx];
           if (item) showHighlightModal(item, hlPhotosMap[item.name] || "", city.name, city.id);
         });
+        card.addEventListener("mouseenter", () => {
+          const idx = card.getAttribute("data-hl-idx");
+          const item = visibleHighlights[parseInt(idx, 10)];
+          if (!item) return;
+          const marker = document.querySelector(`#hl-markers-focus g[data-hl-name="${CSS.escape(item.name)}"]`);
+          if (marker) marker.classList.add("hl-active");
+        });
+        card.addEventListener("mouseleave", () => {
+          const idx = card.getAttribute("data-hl-idx");
+          const item = visibleHighlights[parseInt(idx, 10)];
+          if (!item) return;
+          const marker = document.querySelector(`#hl-markers-focus g[data-hl-name="${CSS.escape(item.name)}"]`);
+          if (marker) marker.classList.remove("hl-active");
+        });
       });
+      renderHighlightMarkers(city, hlPhotosMap);
     } else {
       hlWrap?.classList.add("hidden");
+      clearHighlightMarkers();
     }
 
     const tagsWrap = document.getElementById("city-tags");
@@ -2087,18 +2226,22 @@
     }
     setTimeout(hideHint, 5000);
 
+    let _wheelRaf = 0;
+    let _wheelDx = 0, _wheelDy = 0, _wheelMx = 0, _wheelMy = 0;
     wrap.addEventListener("wheel", (e) => {
       e.preventDefault();
       const rect = wrap.getBoundingClientRect();
-      const mx = e.clientX - rect.left - rect.width / 2;
-      const my = e.clientY - rect.top - rect.height / 2;
+      _wheelMx = e.clientX - rect.left - rect.width / 2;
+      _wheelMy = e.clientY - rect.top - rect.height / 2;
       const factor = e.deltaY > 0 ? 0.95 : 1.05;
-      const newScale = Math.min(6, Math.max(0.5, scale * factor));
+      const newScale = Math.min(12, Math.max(0.5, scale * factor));
       const ratio = newScale / scale;
-      tx = mx - ratio * (mx - tx);
-      ty = my - ratio * (my - ty);
+      tx = _wheelMx - ratio * (_wheelMx - tx);
+      ty = _wheelMy - ratio * (_wheelMy - ty);
       scale = newScale;
-      updateTransform();
+      if (!_wheelRaf) {
+        _wheelRaf = requestAnimationFrame(() => { _wheelRaf = 0; updateTransform(); });
+      }
     }, { passive: false });
 
     wrap.addEventListener("mousedown", (e) => {
@@ -2111,6 +2254,7 @@
       startTy = ty;
     });
 
+    let _panRaf = 0;
     wrap.addEventListener("mousemove", (e) => {
       if (!isDown) return;
       const dx = e.clientX - startX;
@@ -2120,7 +2264,9 @@
       e.preventDefault();
       tx = startTx + dx;
       ty = startTy + dy;
-      updateTransform();
+      if (!_panRaf) {
+        _panRaf = requestAnimationFrame(() => { _panRaf = 0; updateTransform(); });
+      }
     });
 
     wrap.addEventListener("mouseup", () => (isDown = false));
@@ -2146,18 +2292,21 @@
       }
     }, { passive: true });
 
+    let _touchPanRaf = 0;
     wrap.addEventListener("touchmove", (e) => {
       if (e.touches.length === 2 && touchMode === "pinch") {
         e.preventDefault();
         const d = tdist(e.touches[0], e.touches[1]);
-        const newScale = Math.min(6, Math.max(0.5, pinchStartScale * (d / pinchStartDist)));
+        const newScale = Math.min(12, Math.max(0.5, pinchStartScale * (d / pinchStartDist)));
         const c = tcenter(e.touches);
         tx += c.x - lastTouchCenterX;
         ty += c.y - lastTouchCenterY;
         lastTouchCenterX = c.x;
         lastTouchCenterY = c.y;
         scale = newScale;
-        updateTransform();
+        if (!_touchPanRaf) {
+          _touchPanRaf = requestAnimationFrame(() => { _touchPanRaf = 0; updateTransform(); });
+        }
       } else if (e.touches.length === 1 && (touchMode === "pending" || touchMode === "pan")) {
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
@@ -2168,7 +2317,9 @@
           e.preventDefault();
           tx = startTx + dx;
           ty = startTy + dy;
-          updateTransform();
+          if (!_touchPanRaf) {
+            _touchPanRaf = requestAnimationFrame(() => { _touchPanRaf = 0; updateTransform(); });
+          }
         }
       }
     }, { passive: false });
@@ -2382,8 +2533,13 @@
         wrap.addEventListener("touchstart", (e) => {
           if (e.touches.length === 1) updateHover(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: true });
+        let _touchHoverRaf = 0;
         wrap.addEventListener("touchmove", (e) => {
-          if (e.touches.length === 1) updateHover(e.touches[0].clientX, e.touches[0].clientY);
+          if (e.touches.length !== 1) return;
+          const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+          if (!_touchHoverRaf) {
+            _touchHoverRaf = requestAnimationFrame(() => { _touchHoverRaf = 0; updateHover(cx, cy); });
+          }
         }, { passive: true });
 
         wrap.addEventListener("touchend", () => {
@@ -2529,7 +2685,7 @@
           const isReg = targetPath.classList.contains("region");
           const pad = isReg ? 1.15 : 1.4;
           const fitZoom = Math.min(availW / (cityW * pad), availH / (cityH * pad));
-          const targetZoom = Math.min(8, Math.max(isReg ? 1.5 : 2.5, fitZoom));
+          const targetZoom = Math.min(12, Math.max(isReg ? 1.5 : 2.5, fitZoom));
           zoomCtrl.focusOnPoint(elX, elY, targetZoom);
 
           if (focusOverlay) focusOverlay.style.opacity = "1";
@@ -2558,23 +2714,24 @@
         wrap.addEventListener("click", (e) => {
           if (zoomCtrl.wasPan()) return;
           const path = findTarget(e.clientX, e.clientY);
-          if (!path) return;
+
+          if (!path || path.classList.contains("region")) {
+            if (_currentCityId) closePanel();
+            return;
+          }
 
           if (path.classList.contains("city-district")) {
             const cityId = path.getAttribute("data-city-id");
+            if (cityId && cityId === _currentCityId) {
+              closePanel();
+              return;
+            }
             const regionId = path.getAttribute("data-region-id");
             const region = country.regions.find((r) => r.id === regionId);
             const city = region?.cities?.find((c) => c.id === cityId);
             if (city) {
               zoomToPath(path);
               onCityClick(city, regionId);
-            }
-          } else if (path.classList.contains("region")) {
-            const regionId = path.getAttribute("data-region-id");
-            const region = country.regions.find((r) => r.id === regionId);
-            if (region) {
-              zoomToPath(path);
-              onRegionClick(region);
             }
           }
         });

@@ -53,6 +53,7 @@ function _normalizeHL(val) {
 
 let _user = null;
 let _data = { visited: {}, visitedHighlights: {} };
+let _authReady = false;
 const _listeners = new Set();
 
 function notify() {
@@ -118,15 +119,18 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     _data = await idbGet();
   }
+  _authReady = true;
   notify();
 });
 
 window.wbApp = {
   onStateChange(fn) {
     _listeners.add(fn);
-    fn(_user, _data);
+    if (_authReady) fn(_user, _data);
     return () => _listeners.delete(fn);
   },
+
+  get authReady() { return _authReady; },
 
   async signIn() {
     try { await signInWithPopup(auth, provider); }
